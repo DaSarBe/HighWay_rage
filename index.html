@@ -342,6 +342,9 @@ button.start:focus-visible { outline: 3px solid var(--amber); outline-offset: 3p
 #intro > .iwait { opacity: 1; }
 #intro.run .iwait { display: none; }
 #app.menu #hud, #app.menu #touch { visibility: hidden; }
+#scoreBox { transform: scale(.78) !important; transform-origin: top left; }
+@media (max-width: 420px) { #scoreBox { transform: scale(.72) !important; } }
+@media (max-width: 360px) { #scoreBox { transform: scale(.58) !important; } }
 </style>
 
 </head>
@@ -2121,7 +2124,7 @@ addEventListener('keyup', e => { keys[e.code] = false; if ((e.code === 'Tab' || 
 addEventListener('blur', () => { for (const k in keys) keys[k] = false; mouseDown = false; if (wheelOpen) closeWheel(); if (state === 'play' && !paused) togglePause(); });
 // 視角：觸控拖曳、滑鼠（點一下鎖定游標後移動，鎖不到時改成按住拖曳）
 const look = { id: null, x: 0, y: 0, x0: 0, y0: 0, t0: 0, swipe: false };
-function gunLook(dx, dy, sens) { const U = G.gun; U.yaw = clamp(U.yaw + clamp(dx, -120, 120) * sens, -0.9, 0.9); U.pitch = clamp(U.pitch + clamp(dy, -120, 120) * sens * 0.8, -1.4, -0.12); }
+function gunLook(dx, dy, sens) { const U = G.gun; U.yaw = clamp(U.yaw + clamp(dx, -120, 120) * sens, -0.9, 0.9); U.pitch = clamp(U.pitch - clamp(dy, -120, 120) * sens * 0.8, -1.4, -0.12); }
 const cv = renderer.domElement;
 let lastLockPause = 0;
 function tryLock() { try { const r = cv.requestPointerLock && cv.requestPointerLock(); if (r && r.catch) r.catch(() => {}); } catch (_) {} }
