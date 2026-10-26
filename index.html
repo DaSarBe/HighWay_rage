@@ -366,6 +366,13 @@ button.start:focus-visible { outline: 3px solid var(--amber); outline-offset: 3p
 #achList .item .rw { font: 900 15px var(--font-num); color: var(--amber); white-space: nowrap; }
 #achList .item.done { opacity: .6; }
 #scoreBox { transform: scale(.78) !important; transform-origin: top left; }
+/* Boss 血條：縮成頂端細條，不擋視線 */
+#bossBox { position: absolute; top: calc(6px + env(safe-area-inset-top, 0px)); left: 50%; transform: translateX(-50%); width: min(220px, 32vw); padding: 2px 6px 4px; border-width: 1.5px; border-radius: 6px; pointer-events: none; }
+#bossBox[hidden] { display: none; }
+#bossBox .eyebrow { font-size: 10px; line-height: 1.2; letter-spacing: .1em; }
+#bossBox .bar { height: 6px; margin-top: 2px; }
+@media (min-width: 900px) { #bossBox { width: 260px; } }
+@media (hover: none) and (pointer: coarse) and (orientation: portrait) { #bossBox { top: calc(92px + env(safe-area-inset-top, 0px)); width: 124px; } }
 /* 時速面板固定在左下角，技能列疊在它上方 */
 #speedo { scale: .78; transform-origin: left bottom; }
 @media (max-width: 1100px) { #hint { display: none; } }
@@ -416,10 +423,10 @@ button.start:focus-visible { outline: 3px solid var(--amber); outline-offset: 3p
     <div id="policeFlash"></div>
     <div class="sideW" id="sideL">◀ 左側有車</div><div class="sideW" id="sideR">右側有車 ▶</div>
     <div id="stageBanner"></div><div id="camFlash"></div>
+      <div id="bossBox" hidden><div class="eyebrow">BOSS</div><div class="bar"><i id="bossBar"></i></div></div>
     <div id="centerHud">
       <div id="comboBox" hidden><div class="row"><span class="cn">連殺</span><span id="cN">0</span><span id="cM">×1.0</span></div><div class="bar"><i id="cBar"></i></div></div>
       <div id="stars" hidden></div>
-      <div id="bossBox" hidden><div class="eyebrow">遊覽車路隊長 BOSS</div><div class="bar"><i id="bossBar"></i></div><div id="bossHint">連續用同一種武器威力會下降，記得換武器</div></div>
     </div>
     <div id="speech" hidden><b id="spk"></b><span id="spTxt"></span></div>
     <div id="feed"></div>
