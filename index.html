@@ -98,7 +98,7 @@ body { margin: 0; background: #0d1310; color: var(--paper); font-family: var(--f
 
 /* ---------- 技能 ---------- */
 #skillBar { position: absolute; left: 50%; bottom: calc(58px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); display: flex; gap: 10px; }
-.skill { position: relative; overflow: hidden; pointer-events: auto; touch-action: none; display: grid; justify-items: center; align-content: center; gap: 0; width: 132px; height: 54px; padding: 0 8px; box-sizing: border-box; background: var(--glass); border: 2px solid rgba(243,244,238,.5); border-radius: 12px; color: var(--paper); font-family: var(--font-display); cursor: pointer; -webkit-user-select: none; user-select: none; backdrop-filter: blur(3px); }
+.skill { position: relative; overflow: hidden; pointer-events: auto; touch-action: none; display: grid; justify-items: center; align-content: center; gap: 0; width: 118px; height: 54px; padding: 0 8px; box-sizing: border-box; background: var(--glass); border: 2px solid rgba(243,244,238,.5); border-radius: 12px; color: var(--paper); font-family: var(--font-display); cursor: pointer; -webkit-user-select: none; user-select: none; backdrop-filter: blur(3px); }
 .skill .sk-key { position: absolute; top: 3px; left: 7px; font: 700 12px var(--font-num); color: var(--muted); }
 .skill .sk-name { font-size: 15px; font-weight: 900; position: relative; }
 .skill .sk-sub { font: 700 13px var(--font-num); color: var(--amber); position: relative; font-variant-numeric: tabular-nums; }
@@ -107,12 +107,29 @@ body { margin: 0; background: #0d1310; color: var(--paper); font-family: var(--f
 .skill.off .sk-sub { color: var(--muted); }
 .skill.run { border-color: var(--amber); }
 .skill[hidden] { display: none; }
+#gunHud { position: absolute; inset: 0; z-index: 4; pointer-events: none; color: #b8ffcf; font-family: var(--font-num); }
+#gunHud[hidden] { display: none; }
+#gunHud .gTint { position: absolute; inset: 0; background: radial-gradient(ellipse at center, rgba(60,255,140,.04) 40%, rgba(0,40,20,.55) 100%); box-shadow: inset 0 0 0 3px rgba(120,255,170,.35); }
+#gunHud .gTop { position: absolute; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); left: 50%; transform: translateX(-50%); padding: 5px 14px; background: rgba(0,30,15,.6); border: 1.5px solid rgba(120,255,170,.6); font: 700 15px var(--font-display); letter-spacing: .1em; white-space: nowrap; }
+#gunHud .gTop b { font-family: var(--font-num); font-size: 20px; color: #fff; margin: 0 4px; }
+#gunHud .gRet { position: absolute; left: 50%; top: 50%; width: 76px; height: 76px; margin: -38px 0 0 -38px; border: 2px solid rgba(160,255,190,.9); border-radius: 50%; }
+#gunHud .gRet::before, #gunHud .gRet::after { content: ''; position: absolute; background: rgba(160,255,190,.9); }
+#gunHud .gRet::before { left: 50%; top: -14px; bottom: -14px; width: 2px; margin-left: -1px; clip-path: polygon(0 0, 100% 0, 100% 36%, 0 36%, 0 64%, 100% 64%, 100% 100%, 0 100%); }
+#gunHud .gRet::after { top: 50%; left: -14px; right: -14px; height: 2px; margin-top: -1px; clip-path: polygon(0 0, 36% 0, 36% 100%, 0 100%, 64% 0, 100% 0, 100% 100%, 64% 100%); }
+#gunHud .gAmmo { position: absolute; left: max(16px, env(safe-area-inset-left, 0px)); bottom: calc(20px + env(safe-area-inset-bottom, 0px)); padding: 6px 12px; background: rgba(0,30,15,.6); border: 1.5px solid rgba(120,255,170,.6); font: 700 14px var(--font-display); }
+#gunHud .gAmmo b { font-family: var(--font-num); font-size: 20px; color: #fff; margin-left: 4px; }
+#gunBtns { display: none; position: absolute; right: max(16px, env(safe-area-inset-right, 0px)); bottom: calc(24px + env(safe-area-inset-bottom, 0px)); flex-direction: column; gap: 14px; align-items: flex-end; pointer-events: none; }
+#gunBtns button { pointer-events: auto; touch-action: none; font: 900 18px var(--font-display); color: #e8fff0; background: rgba(0,50,25,.7); border: 2.5px solid rgba(120,255,170,.85); border-radius: 50%; width: 96px; height: 96px; }
+#gunBtns #gRocket { width: 80px; height: 80px; border-color: #ffb347; color: #ffe2b0; background: rgba(60,30,0,.7); }
+@media (hover: none) and (pointer: coarse) { #gunBtns { display: flex; } }
+#app.gunning #touch .tb:not(#tPause):not(#tMusic), #app.gunning .skill, #app.gunning #weaponBox, #app.gunning #hint, #app.gunning #tut, #app.gunning #cross { display: none !important; }
 @media (hover: none) and (pointer: coarse) {
   #skillBar { display: contents; }
   .skill { position: absolute; width: 74px; height: 64px; bottom: calc(112px + env(safe-area-inset-bottom, 0px)); padding: 0 4px; }
   #skHeli { left: max(16px, env(safe-area-inset-left, 0px)); }
   #skTank { left: calc(max(16px, env(safe-area-inset-left, 0px)) + 84px); }
   #skJump { left: max(16px, env(safe-area-inset-left, 0px)); bottom: calc(184px + env(safe-area-inset-bottom, 0px)); }
+  #skGun { left: calc(max(16px, env(safe-area-inset-left, 0px)) + 84px); bottom: calc(184px + env(safe-area-inset-bottom, 0px)); }
   .skill .sk-key { display: none; }
   .skill .sk-name { font-size: 12px; }
 }
@@ -121,6 +138,7 @@ body { margin: 0; background: #0d1310; color: var(--paper); font-family: var(--f
   #skHeli { left: calc(max(16px, env(safe-area-inset-left, 0px)) + 180px); }
   #skTank { left: calc(max(16px, env(safe-area-inset-left, 0px)) + 264px); }
   #skJump { left: calc(max(16px, env(safe-area-inset-left, 0px)) + 348px); bottom: calc(24px + env(safe-area-inset-bottom, 0px)); }
+  #skGun { left: calc(max(16px, env(safe-area-inset-left, 0px)) + 432px); bottom: calc(24px + env(safe-area-inset-bottom, 0px)); }
 }
 
 /* ---------- 連殺、通緝、Boss ---------- */
@@ -163,6 +181,10 @@ body { margin: 0; background: #0d1310; color: var(--paper); font-family: var(--f
 .board h1 { margin: 0; font-size: clamp(44px, 9vw, 84px); font-weight: 900; line-height: 1; letter-spacing: .06em; text-wrap: balance; }
 .board .sub { margin-top: 6px; font-size: 15px; font-weight: 700; color: var(--muted); letter-spacing: .1em; }
 .board .rule { height: 3px; background: var(--paper); margin: 16px 0; border-radius: 2px; }
+.howto { font-size: 15px; line-height: 1.5; }
+.howto .howH { font: 900 18px var(--font-display); color: var(--amber); letter-spacing: .1em; margin-bottom: 6px; }
+.howto ol { margin: 0; padding-left: 1.4em; display: grid; gap: 4px; }
+.howto b { font-weight: 900; }
 .keys { display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; font-size: 15px; font-weight: 500; }
 .keys dt { font-family: var(--font-num); font-weight: 700; white-space: nowrap; }
 .keys dd { margin: 0; }
@@ -327,6 +349,8 @@ button.start:focus-visible { outline: 3px solid var(--amber); outline-offset: 3p
 <div id="app" class="introing">
   <div id="hud">
     <div id="vignette"></div>
+    <div id="gunHud" hidden><div class="gTint"></div><div class="gTop">陸航的朋友<b id="gTime">20</b>秒</div><div class="gRet"></div><div class="gAmmo">火箭<b id="gRock">6</b></div>
+      <div id="gunBtns"><button id="gRocket" aria-label="火箭">火箭</button><button id="gCannon" aria-label="機炮">機炮</button></div></div>
     <div id="scoreBox" class="sign">
       <div class="eyebrow" id="lvTxt">清道績效</div>
       <div id="score">0</div>
@@ -359,6 +383,7 @@ button.start:focus-visible { outline: 3px solid var(--amber); outline-offset: 3p
       <button class="skill" id="skHeli" tabindex="-1"><i class="sk-cd" id="skHeliCd"></i><span class="sk-key">F</span><span class="sk-name">空中支援</span><span class="sk-sub" id="skHeliSub">就緒</span></button>
       <button class="skill" id="skTank" tabindex="-1"><i class="sk-cd" id="skTankCd"></i><span class="sk-key">G</span><span class="sk-name">地表最強</span><span class="sk-sub" id="skTankSub">×3</span></button>
       <button class="skill" id="skJump" tabindex="-1" hidden><i class="sk-cd" id="skJumpCd"></i><span class="sk-key">H</span><span class="sk-name">飛天汽車</span><span class="sk-sub" id="skJumpSub">就緒</span></button>
+      <button class="skill" id="skGun" tabindex="-1" hidden><i class="sk-cd" id="skGunCd"></i><span class="sk-key">J</span><span class="sk-name">陸航的朋友</span><span class="sk-sub" id="skGunSub">就緒</span></button>
     </div>
     <div id="tut" hidden><div class="eyebrow">新手教學 <span id="tutN"></span></div><div id="tutTxt"></div></div>
     <div id="hint"></div>
@@ -380,6 +405,15 @@ button.start:focus-visible { outline: 3px solid var(--amber); outline-offset: 3p
       <h1>國道戰神</h1>
       <div class="sub">國道清道夫　第一人稱駕駛</div>
       <div class="rule"></div>
+      <div class="howto"><div class="howH">怎麼玩</div><ol>
+        <li><b>目標</b>：在國道上開車，清掉搗亂的<span class="chip s">三寶</span>和<span class="chip c">路隊長</span>，每清一個就得分。</li>
+        <li><b>連殺</b>：連續清除，分數倍率越來越高（最高 ×5）；撞到或誤傷會中斷。</li>
+        <li><b>別打路人</b>：打到<span class="chip n">一般車</span>會扣分，還會被通緝，警車會追你。</li>
+        <li><b>車況歸零就結束</b>：撿修車包可以回血；Boss 很硬，要輪流換武器。</li>
+        <li><b>賺金幣</b>：每局結束，<b>分數 ÷ 5</b> 變成金幣（打倒 Boss 再加 200）。</li>
+        <li><b>變強</b>：到「車庫商店」買武器、改裝車子，還能解鎖四種技能幫你清場。</li>
+      </ol></div>
+      <div class="rule"></div>
       <dl class="keys touchOnly">
         <dt>左右滑</dt><dd>在畫面下半部快速左右滑，換車道（拿著道具也可以）</dd>
         <dt>拖曳上半部</dt><dd>在畫面上半部左右拖曳，轉動視角瞄準</dd>
@@ -396,6 +430,7 @@ button.start:focus-visible { outline: 3px solid var(--amber); outline-offset: 3p
         <dt>← → / A D</dt><dd>換車道（拿著道具也可以）</dd>
         <dt>滑鼠移動</dt><dd>轉動視角瞄準。點一下畫面會鎖定游標；若鎖不到，改成按住左鍵拖曳</dd>
         <dt>F / G</dt><dd>空中支援：直升機磁鐵吸走敵人（不含 Boss），冷卻 30 秒。地表最強：三台戰車橫穿高速公路，撞到的車全部毀掉，共 3 次</dd>
+        <dt>J</dt><dd>陸航的朋友（需在車庫商店解鎖）：武裝直升機飛來，你改用機鼻視角操控機炮（左鍵／按住「機炮」）與火箭（右鍵或 Space／「火箭」），車子自動直行且不會受傷。打到一般車會大量扣分</dd>
         <dt>H</dt><dd>飛天汽車（需在車庫商店解鎖）：往上噴射升空，落地時震毀範圍內的所有車，不會被通緝；Boss 受 25% 傷害</dd>
         <dt>按住 Tab 或 Q</dt><dd>叫出道具轉盤（時間變慢），移動滑鼠或按 ← → 選擇，放開即裝備</dd>
         <dt>空白鍵 / 滑鼠左鍵</dt><dd>攻擊（丟、開槍）。C 鍵視角回正</dd>
@@ -421,7 +456,7 @@ button.start:focus-visible { outline: 3px solid var(--amber); outline-offset: 3p
       <div class="shopH"><h1>車庫商店</h1><div class="bal" id="shopBal"></div></div>
       <div class="sub">用清道賺到的金幣買裝備（依序購買）、改造車子</div>
       <div id="shopList"></div>
-      <div class="go"><button class="start" id="shopBack">返回</button><small>金幣 = 分數 ÷ 4，加上每隻 Boss 200</small></div>
+      <div class="go"><button class="start" id="shopBack">返回</button><small>金幣 = 分數 ÷ 5，加上每隻 Boss 200</small></div>
     </div>
   </div>
 
@@ -560,7 +595,7 @@ const LANES = [-5.25, -1.75, 1.75, 5.25];   // 0 為內側（超車道）
 let MAX_SPEED = 47;                          // m/s，約 170 km/h（引擎改造會提高）
 let PMAX = 100, HELI_CD = 30;                // 車況上限、空中支援冷卻（車體／技能改造會調整）
 const SAVE_KEY = 'rck-save';
-const save = { coins: 0, earned: -1, uid: '', own: {}, up: { engine: 0, body: 0, armor: 0, ammo: 0, heli: 0, tank: 0, jump: 0 } };
+const save = { coins: 0, earned: -1, uid: '', own: {}, up: { engine: 0, body: 0, armor: 0, ammo: 0, heli: 0, tank: 0, jump: 0, gun: 0 } };
 try { const o = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'); if (o) { save.coins = +o.coins || 0; save.earned = o.earned >= 0 ? +o.earned : -1; save.uid = typeof o.uid === 'string' ? o.uid : ''; Object.assign(save.own, o.own); Object.assign(save.up, o.up); } } catch (_) {}
 const persist = () => { try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch (_) {} cloudDirty(); };
 const KM0 = 34;
@@ -593,6 +628,7 @@ const UPGRADES = [
   { id: 'ammo',   name: '武器強化', max: 5, base: 180, desc: lv => `所有武器傷害 +12%（目前 +${12 * lv}%）` },
   { id: 'heli',   name: '空中支援改裝', max: 3, base: 300, desc: lv => `冷卻 −5 秒（目前 ${30 - 5 * lv} 秒）` },
   { id: 'jump',   name: '飛天汽車', max: 4, costs: [600, 400, 700, 1000], desc: lv => lv === 0 ? '解鎖技能（H）：升空後落地，震毀範圍內所有車' : `落地範圍 ${14 + 4 * (lv - 1)} 公尺・冷卻 ${30 - 5 * (lv - 1)} 秒` + (lv < 4 ? `（下一級：${14 + 4 * lv} 公尺・${30 - 5 * lv} 秒）` : '') },
+  { id: 'gun',    name: '陸航的朋友', max: 4, costs: [1200, 800, 1200, 1600], desc: lv => lv === 0 ? '解鎖技能（J）：武裝直升機，機炮＋火箭' : `操控 ${20 + 3 * (lv - 1)} 秒・火箭 ${6 + 2 * (lv - 1)} 發・冷卻 ${60 - 10 * (lv - 1)} 秒` + (lv < 4 ? '（再升一級：+3 秒、+2 發、冷卻 −10 秒）' : '') },
   { id: 'tank',   name: '戰車車庫', max: 2, base: 500, desc: lv => `地表最強次數 +1（目前 ${3 + lv} 次）` },
 ];
 const upCost = (u, lv) => u.costs ? u.costs[lv] : u.base * (lv + 1);
@@ -1099,7 +1135,7 @@ function updateCars(dt, t) {
 }
 
 // ---------- 玩法系統：連殺、補給、瓶子、波次、Boss、警車 ----------
-const G = { region: 0, combo: 0, comboT: 0, wanted: 0, wantedT: 0, policeT: 3, nextWave: 1500, waveN: 0, nextBoss: 2500, boss: null, lastLevel: 1, policeNear: false, heli: null, heliCD: 0, tanks: 3 + save.up.tank, tankLock: 0, tankList: [], tankKills: 0, jump: null, jumpCD: 0 };
+const G = { region: 0, combo: 0, comboT: 0, wanted: 0, wantedT: 0, policeT: 3, nextWave: 1500, waveN: 0, nextBoss: 2500, boss: null, lastLevel: 1, policeNear: false, heli: null, heliCD: 0, tanks: 3 + save.up.tank, tankLock: 0, tankList: [], tankKills: 0, jump: null, jumpCD: 0, gun: null, gunCD: 0 };
 const pickups = [], bottles = [];
 const REGIONS = ['高雄', '台南', '嘉義', '雲林', '彰化', '台中', '苗栗', '新竹', '桃園', '新北', '台北', '基隆'];
 const regionAt = s => REGIONS[Math.floor(s / 1500) % REGIONS.length];
@@ -1174,9 +1210,11 @@ function updateBubble(c, dt) {
 }
 function resetGame() {
   if (G.heli) scene.remove(G.heli.g);
+  if (G.gun && G.gun.mesh) scene.remove(G.gun.mesh);
   G.tankList.forEach(t => scene.remove(t.g));
-  Object.assign(G, { region: 0, combo: 0, comboT: 0, wanted: 0, wantedT: 0, policeT: 3, nextWave: 1500, waveN: 0, nextBoss: 2500, boss: null, lastLevel: 1, policeNear: false, heli: null, heliCD: 0, tanks: 3 + save.up.tank, tankLock: 0, tankList: [], tankKills: 0, jump: null, jumpCD: 0 });
+  Object.assign(G, { region: 0, combo: 0, comboT: 0, wanted: 0, wantedT: 0, policeT: 3, nextWave: 1500, waveN: 0, nextBoss: 2500, boss: null, lastLevel: 1, policeNear: false, heli: null, heliCD: 0, tanks: 3 + save.up.tank, tankLock: 0, tankList: [], tankKills: 0, jump: null, jumpCD: 0, gun: null, gunCD: 0 });
   jumpMarker.visible = false;
+  if (gunGroup) { gunGroup.visible = false; } gunRockets.forEach(r => scene.remove(r.m)); gunRockets.length = 0; $('#app').classList.remove('gunning'); $('#gunHud').hidden = true;
   pickups.forEach(p => scene.remove(p.g)); pickups.length = 0;
   bottles.forEach(b => scene.remove(b.m)); bottles.length = 0;
 }
@@ -1356,7 +1394,7 @@ jumpMarker.rotation.x = -Math.PI / 2; jumpMarker.visible = false; scene.add(jump
 const jumpWave = new THREE.Mesh(new THREE.RingGeometry(0.85, 1, 48), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0, side: THREE.DoubleSide, depthWrite: false }));
 jumpWave.rotation.x = -Math.PI / 2; jumpWave.visible = false; scene.add(jumpWave);
 function useJump() {
-  if (!skillOK() || save.up.jump < 1 || G.jump) return;
+  if (!skillOK() || save.up.jump < 1 || G.jump || G.gun) return;
   if (G.jumpCD > 0) { msg(`飛天汽車冷卻中 ${Math.ceil(G.jumpCD)} 秒`, 'bad'); return; }
   if (!jumpCar) { jumpCar = buildCar(0x2a5ba0, 'normal'); jumpCar.g.visible = false; scene.add(jumpCar.g); }
   G.jump = { t: 0, y: 0, tilt: 0, vy: 0, cam: 0 }; msg('飛天汽車！', 'good'); sfx('boss');
@@ -1395,12 +1433,136 @@ function updateJump(dt) {
   jumpMarker.visible = true; jumpMarker.scale.set(R, R, 1); jumpMarker.position.set(LANES[player.lane], 0.3, -(player.s + player.speed * remain));
   if (T >= total) jumpLand();
 }
+// ---------- 陸航的朋友：武裝直升機飛來，玩家改用機鼻視角操控機炮與火箭 ----------
+const GUN_IN = 1.6, GUN_ORBIT = 3, GUN_OUT = 1.6, GUN_Y = 24, GUN_PEN = 300;
+const gunDur = () => 20 + 3 * (save.up.gun - 1), gunRocketMax = () => 6 + 2 * (save.up.gun - 1), gunCDmax = () => 60 - 10 * (save.up.gun - 1);
+const gunCtl = () => !!G.gun && G.gun.phase === 'ctl';
+let gunGroup = null; const gunRockets = [];
+function buildGunship() {
+  const g = new THREE.Group(), M = c => new THREE.MeshLambertMaterial({ color: c });
+  const body = new THREE.Mesh(new THREE.BoxGeometry(2.4, 2.2, 6.2), M(0x39503b)); g.add(body);
+  const nose = new THREE.Mesh(new THREE.BoxGeometry(1.9, 1.3, 2), glassMat); nose.position.set(0, 0.2, -3.6); g.add(nose);
+  const boom = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.7, 6), M(0x39503b)); boom.position.set(0, 0.6, 5.8); g.add(boom);
+  const fin = new THREE.Mesh(new THREE.BoxGeometry(0.2, 1.8, 1.0), M(0x2c3e2e)); fin.position.set(0, 1.5, 8.6); g.add(fin);
+  for (const x of [-1, 1]) {
+    const wing = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.15, 1.2), M(0x2c3e2e)); wing.position.set(x * 2.2, -0.2, 0.4); g.add(wing);
+    const pod = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.35, 2.4, 8), M(0x222222)); pod.rotation.x = Math.PI / 2; pod.position.set(x * 3.0, -0.55, 0.2); g.add(pod);
+  }
+  const gun = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 1.6, 6), M(0x111111)); gun.rotation.x = Math.PI / 2; gun.position.set(0, -1.3, -3.4); g.add(gun);
+  const rotor = new THREE.Group(); rotor.position.y = 1.4;
+  for (const r of [0, Math.PI / 2]) { const b = new THREE.Mesh(new THREE.BoxGeometry(15, 0.08, 0.5), M(0x1a1a1a)); b.rotation.y = r; rotor.add(b); }
+  g.add(rotor); g.userData.rotor = rotor; return g;
+}
+function useGun() {
+  if (!skillOK() || save.up.gun < 1 || G.gun || G.jump) return;
+  if (G.gunCD > 0) { msg(`陸航的朋友冷卻中 ${Math.ceil(G.gunCD)} 秒`, 'bad'); return; }
+  const mesh = buildGunship(); scene.add(mesh); gunGroup = mesh;
+  G.gun = { mesh, phase: 'in', pt: 0, yaw: 0, pitch: -0.55, hold: false, cannonT: 0, rockT: 0, rockets: gunRocketMax(), bossDmg: 0, autoT: 0, autoR: 0.6, th: 0, pos: new THREE.Vector3(), shots: 0 };
+  msg('陸航的朋友出動！', 'good'); sfx('boss');
+}
+function gunHit(c, amt, pen = true) {
+  if (c.dead || c.magnet || c.fling) return;
+  if (c.kind === 'boss') {   // Boss 一次召喚最多損失 40% 血量
+    const U = G.gun, room = c.maxHp * 0.4 - (U ? U.bossDmg : 0); if (room <= 0) return;
+    amt = Math.min(amt, room); if (U) U.bossDmg += amt;
+  }
+  c.hp -= amt; c.flashT = 0.08; if (c.label) drawLabel(c);
+  if (c.kind === 'normal' && pen && !c.gunPen) { c.gunPen = true; addScore(-GUN_PEN); breakCombo(); msg(`誤傷無辜 −${GUN_PEN}`, 'bad'); }
+  if (c.kind === 'boss' && !c.said50 && c.hp < c.maxHp * 0.5) { c.said50 = true; say(c, '你激怒我了！', 2.6, true); }
+  if (c.hp <= 0) kill(c, { skill: true });
+}
+// 準星射線與地面的交點（世界座標：x、s）
+function gunAimPoint() {
+  const U = G.gun, a = U.yaw, f = U.pitch, cf = Math.cos(f);
+  const dx = Math.sin(a) * cf, dy = Math.sin(f), dz = -Math.cos(a) * cf, t = U.pos.y / -dy;
+  return { x: U.pos.x + dx * t, s: -(U.pos.z + dz * t) };
+}
+const gunMuzzle = () => new THREE.Vector3(G.gun.pos.x + 0.9, G.gun.pos.y - 1.6, G.gun.pos.z - 2.5);
+function gunFire() {
+  const U = G.gun, P = gunAimPoint(); U.shots++;
+  tracer(gunMuzzle(), new THREE.Vector3(P.x, 0.6, -P.s), 0xffe08a);
+  let best = null, bd = Infinity;
+  for (const c of cars) {
+    if (c.dead || c.magnet) continue;
+    const dx = Math.abs(c.x - P.x), ds = Math.abs(c.s - P.s);
+    if (dx < c.hw + 1.0 && ds < c.hl + 1.4) { const d = dx + ds; if (d < bd) { bd = d; best = c; } }
+  }
+  puff(P.x + rand(-0.4, 0.4), 0.3, -P.s + rand(-0.4, 0.4), best ? 0xffd27a : 0x999999, 0.5);
+  if (best) { gunHit(best, 12); flashCross(); }
+  if (U.shots % 2 === 0) sfx('pistol');
+  player.shake = Math.max(player.shake, 0.04);
+}
+function launchRocket(from, toX, toS, pen, car) {
+  const m = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 1.1, 6), new THREE.MeshBasicMaterial({ color: 0xffb347 })); m.rotation.x = Math.PI / 2;
+  m.position.copy(from); scene.add(m);
+  gunRockets.push({ m, from: from.clone(), to: new THREE.Vector3(toX, 0.4, -toS), t: 0, pen, car, relTo: toS - player.s, relFrom: -from.z - player.s });
+  sfx('shotgun');
+}
+function gunRocket() {
+  const U = G.gun; if (!U || U.phase !== 'ctl') return;
+  if (U.rockets <= 0) { msg('火箭用完了', 'bad'); return; }
+  if (U.rockT > 0) return;
+  U.rockets--; U.rockT = 1.5; const P = gunAimPoint(); launchRocket(gunMuzzle().add(new THREE.Vector3(1.3, 0, 0)), P.x, P.s, true);
+}
+function rocketBoom(x, s, pen) {
+  const R = 8;
+  for (const c of cars) {
+    if (c.dead || c.magnet) continue;
+    if (Math.hypot(c.x - x, c.s - s) < R + c.hl * 0.5) gunHit(c, 150, pen);
+  }
+  for (let k = 0; k < 16; k++) { const a = rand(0, 6.283), r = rand(0, R * 0.7); puff(x + Math.cos(a) * r, rand(0.3, 2.5), -(s + Math.sin(a) * r), k % 2 ? 0xff8a2a : 0x555555, 2.4); }
+  sfx('boom'); player.shake = Math.max(player.shake, 0.25);
+}
+function nearestFoe(r) {
+  let best = null, bd = r;
+  for (const c of cars) { if (c.dead || c.magnet || c.fling || c.kind === 'normal') continue; const d = Math.hypot(c.x - player.x, c.s - player.s); if (d < bd) { bd = d; best = c; } }
+  return best;
+}
+function updateGun(dt) {
+  for (let i = gunRockets.length - 1; i >= 0; i--) {
+    const r = gunRockets[i]; r.t += dt / 0.45;
+    // 目標與發射點都跟著玩家（或鎖定的車）一起前進，火箭才不會落在已經開走的位置
+    r.from.z = -(player.s + r.relFrom);
+    if (r.car && !r.car.dead) r.to.set(r.car.x, 0.4, -r.car.s); else r.to.z = -(player.s + r.relTo);
+    const k = Math.min(1, r.t); r.m.position.lerpVectors(r.from, r.to, k); r.m.lookAt(r.to);
+    if (Math.random() < 0.8) puff(r.m.position.x, r.m.position.y, r.m.position.z, 0xdddddd, 0.7);
+    if (k >= 1) { scene.remove(r.m); gunRockets.splice(i, 1); rocketBoom(r.to.x, -r.to.z, r.pen); }
+  }
+  if (G.gunCD > 0 && !G.gun) G.gunCD = Math.max(0, G.gunCD - dt);
+  const U = G.gun; if (!U) return;
+  const p = player, m = U.mesh; U.pt += dt; U.rockT -= dt; U.cannonT -= dt;
+  p.invulT = Math.max(p.invulT, 0.25); m.userData.rotor.rotation.y += 32 * dt;
+  if (U.phase === 'in') {
+    const k = Math.min(1, U.pt / GUN_IN), e = 1 - (1 - k) * (1 - k);
+    m.position.set(p.x, 45 + (GUN_Y - 45) * e, -(p.s + 240 + (4 - 240) * e)); m.rotation.set(0.15 * (1 - k), 0, 0);
+    if (U.pt >= GUN_IN) { U.phase = 'ctl'; U.pt = 0; m.visible = false; $('#app').classList.add('gunning'); $('#gunHud').hidden = false; if (document.pointerLockElement === null && matchMedia('(pointer: fine)').matches) tryLock(); msg('機炮與火箭就緒！', 'good'); }
+  } else if (U.phase === 'ctl') {
+    U.pos.set(p.x, GUN_Y, -p.s);
+    if ((U.hold || mouseDown) && U.cannonT <= 0) { U.cannonT = 0.1; gunFire(); }
+    setText('gTime', Math.max(0, Math.ceil(gunDur() - U.pt))); setText('gRock', U.rockets);
+    if (U.pt >= gunDur()) {
+      U.phase = 'orbit'; U.pt = 0; U.hold = false; m.visible = true; U.th = 0;
+      $('#app').classList.remove('gunning'); $('#gunHud').hidden = true; msg('直升機環繞支援！', 'good');
+    }
+  } else if (U.phase === 'orbit') {
+    U.th += dt * 1.8; const rx = 14 * Math.cos(U.th), rs = 14 * Math.sin(U.th);
+    m.position.set(p.x + rx, 15, -(p.s + rs)); m.rotation.set(0, Math.atan2(Math.sin(U.th), Math.cos(U.th) * -1), 0.25);
+    U.autoT -= dt; U.autoR -= dt;
+    const foe = nearestFoe(60);
+    if (foe && U.autoT <= 0) { U.autoT = 0.12; tracer(m.position.clone(), new THREE.Vector3(foe.x, 1, -foe.s), 0xffe08a); gunHit(foe, 30, false); sfx('pistol'); }
+    if (foe && U.autoR <= 0) { U.autoR = 1.2; launchRocket(m.position.clone(), foe.x, foe.s, false, foe); }
+    if (U.pt >= GUN_ORBIT) { U.phase = 'out'; U.pt = 0; U.outS = 0; }
+  } else {
+    U.outS += 40 * dt; m.position.set(p.x + 14 * Math.cos(U.th), 15 + U.pt * 14, -(p.s + 14 * Math.sin(U.th) + U.outS)); m.rotation.set(0.3, 0, 0);
+    if (U.pt >= GUN_OUT) { scene.remove(m); G.gun = null; gunGroup = null; G.gunCD = gunCDmax(); msg('直升機離場', 'good'); }
+  }
+}
 function updateSkills(dt) {
   if (G.heliCD > 0) G.heliCD = Math.max(0, G.heliCD - dt);
   if (G.tankLock > 0) G.tankLock -= dt;
-  updateHeli(dt); updateTanks(dt); updateJump(dt);
+  updateHeli(dt); updateTanks(dt); updateJump(dt); updateGun(dt);
 }
-for (const [id, fn] of [['skHeli', () => useHeli()], ['skTank', () => useTanks()], ['skJump', () => useJump()]]) {
+for (const [id, fn] of [['skHeli', () => useHeli()], ['skTank', () => useTanks()], ['skJump', () => useJump()], ['skGun', () => useGun()]]) {
   const el = document.getElementById(id);
   el.addEventListener('pointerdown', e => { e.preventDefault(); fn(); });
   el.addEventListener('click', e => e.preventDefault());
@@ -1687,7 +1849,7 @@ function hurt(n, text) {
   if (player.hp <= 0) gameOver();
 }
 function changeLane(d, auto) {
-  if (state !== 'play' || paused) return false;
+  if (state !== 'play' || paused || gunCtl()) return false;
   const nl = clamp(player.lane + d, 0, 3);
   if (nl === player.lane) { player.pendLane = 0; return false; }
   if (!G.jump && sideDanger(d)) {   // 旁邊有車（在空中就不用擔心）：先不切，排隊等它過去（1.2 秒內）
@@ -1701,7 +1863,7 @@ const armed = () => true;
 
 function updatePlayer(dt) {
   const p = player;
-  const gas = keys.ArrowUp || keys.KeyW, brake = keys.ArrowDown || keys.KeyS;
+  const manual = !gunCtl(), gas = manual && (keys.ArrowUp || keys.KeyW), brake = manual && (keys.ArrowDown || keys.KeyS);
   // 油門加速；沒按油門時自動定速，前方有慢車就跟車，不會因為被擋而掉到 0
   if (gas) { p.speed += 9 * dt * (1 - p.speed / (MAX_SPEED + 3)); tut.gas += dt; }
   else if (brake) p.speed -= 22 * dt;
@@ -1722,7 +1884,7 @@ function updatePlayer(dt) {
   p.camYaw += (p.aim + p.steer * 0.04 - p.camYaw) * Math.min(1, 20 * dt);
   p.cooldown -= dt; p.hurtCD -= dt; p.swingT = Math.max(0, p.swingT - dt); p.shake = Math.max(0, p.shake - dt * 0.6);
   if ((p.flashT -= dt) <= 0) muzzle.visible = false;
-  if ((keys.Space || mouseDown) && !wheelOpen) attack();
+  if ((keys.Space || mouseDown) && !wheelOpen && manual) attack();
 
   // 碰撞
   if (!G.jump) for (const c of cars) {
@@ -1758,6 +1920,11 @@ function placeRig() {
   camera.position.set(rand(-sh, sh) * 0.3 + cb * 0.38, rand(-sh, sh) * 0.3 + Math.sin(p.s * 0.9) * 0.004 + cb * 3.2, cb * 8.5);
   camera.rotation.order = 'YXZ'; camera.rotation.set(-cb * 0.2, -p.camYaw * (1 - cb * 0.6), 0);
   cockpit.visible = holder.visible = cb < 0.6;
+  if (gunCtl()) {   // 直升機機鼻視角：相機移到直升機位置，朝準星方向
+    const U = G.gun; rig.position.copy(U.pos); camera.position.set(rand(-sh, sh) * 0.3, rand(-sh, sh) * 0.3, 0); camera.rotation.set(U.pitch, -U.yaw, 0);
+    cockpit.visible = holder.visible = false;
+  }
+  const fov = gunCtl() ? 55 : 72; if (camera.fov !== fov) { camera.fov = fov; camera.updateProjectionMatrix(); }
   if (jumpCar) {
     const jc = jumpCar.g; jc.visible = cb > 0.02;
     if (jc.visible) { jc.position.set(p.x, jy, -p.s); jc.rotation.set(clamp((G.jump.vy || 0) * 0.012, -0.35, 0.35), 0, -p.steer * 0.04); }
@@ -1809,6 +1976,8 @@ function updateHud(dt) {
   hs.classList.toggle('off', !hReady); hs.classList.toggle('run', !!G.heli); ts.classList.toggle('off', !tReady); ts.classList.toggle('run', G.tankList.length > 0);
   setText('skHeliSub', G.heli ? '出動中' : G.heliCD > 0 ? Math.ceil(G.heliCD) + ' 秒' : '就緒');
   setText('skTankSub', G.tanks > 0 ? '×' + G.tanks : '用完');
+  const gs = $('#skGun'); gs.hidden = save.up.gun < 1;
+  if (save.up.gun >= 1) { const gr = G.gunCD <= 0 && !G.gun; gs.classList.toggle('off', !gr); gs.classList.toggle('run', !!G.gun); setText('skGunSub', G.gun ? '出動中' : G.gunCD > 0 ? Math.ceil(G.gunCD) + ' 秒' : '就緒'); $('#skGunCd').style.height = (G.gunCD > 0 ? G.gunCD / gunCDmax() * 100 : 0) + '%'; }
   const js = $('#skJump'); js.hidden = save.up.jump < 1;
   if (save.up.jump >= 1) { const jr = G.jumpCD <= 0 && !G.jump; js.classList.toggle('off', !jr); js.classList.toggle('run', !!G.jump); setText('skJumpSub', G.jump ? '飛行中' : G.jumpCD > 0 ? Math.ceil(G.jumpCD) + ' 秒' : '就緒'); $('#skJumpCd').style.height = (G.jumpCD > 0 ? G.jumpCD / jumpCDmax() * 100 : 0) + '%'; }
   $('#skHeliCd').style.height = (G.heliCD > 0 ? G.heliCD / HELI_CD * 100 : 0) + '%';
@@ -1930,6 +2099,7 @@ addEventListener('keydown', e => {
   if (!$('#homeConfirm').hidden) { if (e.code === 'Escape' || e.code === 'KeyP') closeHomeAsk(); return; }
   if (e.code === 'Escape' || e.code === 'KeyP') { if (performance.now() - lastLockPause < 250) return; togglePause(); return; }
   if (paused) return;
+  if (gunCtl()) { if (e.code === 'Space' || e.code === 'KeyR') gunRocket(); return; }
   if (e.code === 'Tab' || e.code === 'KeyQ') { openWheel(); return; }
   if (wheelOpen) {
     if (e.code === 'ArrowLeft' || e.code === 'KeyA') { wheelSel = (wheelSel + WEAPONS.length - 1) % WEAPONS.length; renderWheel(); sfx('tick'); }
@@ -1944,21 +2114,25 @@ addEventListener('keydown', e => {
   if (e.code === 'KeyF') useHeli();
   if (e.code === 'KeyG') useTanks();
   if (e.code === 'KeyH') useJump();
+  if (e.code === 'KeyJ') useGun();
   if (e.code === 'KeyC') player.aim = 0;
 });
 addEventListener('keyup', e => { keys[e.code] = false; if ((e.code === 'Tab' || e.code === 'KeyQ') && wheelOpen) closeWheel(); });
 addEventListener('blur', () => { for (const k in keys) keys[k] = false; mouseDown = false; if (wheelOpen) closeWheel(); if (state === 'play' && !paused) togglePause(); });
 // 視角：觸控拖曳、滑鼠（點一下鎖定游標後移動，鎖不到時改成按住拖曳）
-const look = { id: null, x: 0, x0: 0, y0: 0, t0: 0, swipe: false };
+const look = { id: null, x: 0, y: 0, x0: 0, y0: 0, t0: 0, swipe: false };
+function gunLook(dx, dy, sens) { const U = G.gun; U.yaw = clamp(U.yaw + clamp(dx, -120, 120) * sens, -0.9, 0.9); U.pitch = clamp(U.pitch + clamp(dy, -120, 120) * sens * 0.8, -1.4, -0.12); }
 const cv = renderer.domElement;
 let lastLockPause = 0;
 function tryLock() { try { const r = cv.requestPointerLock && cv.requestPointerLock(); if (r && r.catch) r.catch(() => {}); } catch (_) {} }
 function lookBy(dx, sens) { if (state !== 'play' || paused || wheelOpen) return; player.aim = clamp(player.aim + clamp(dx, -120, 120) * sens, -1.35, 1.35); }
+cv.addEventListener('contextmenu', e => e.preventDefault());
 cv.addEventListener('pointerdown', e => {
+  if (gunCtl() && !paused && e.pointerType === 'mouse') { if (e.button === 2) { gunRocket(); return; } if (e.button === 0) G.gun.hold = true; }
   if ((e.pointerType === 'mouse' && e.button !== 0) || state !== 'play' || paused) return;
   if (e.pointerType === 'mouse' && !document.pointerLockElement) tryLock();
   if (look.id === null) {
-    look.id = e.pointerId; look.x = look.x0 = e.clientX; look.y0 = e.clientY; look.t0 = performance.now();
+    look.id = e.pointerId; look.x = look.x0 = e.clientX; look.y = look.y0 = e.clientY; look.t0 = performance.now();
     // 觸控：畫面下半部是「滑動換車道」區，上半部拖曳是瞄準
     look.swipe = e.pointerType === 'touch' && e.clientY > innerHeight * 0.5;
     try { cv.setPointerCapture(e.pointerId); } catch (_) {}
@@ -1966,12 +2140,18 @@ cv.addEventListener('pointerdown', e => {
   if (e.pointerType === 'mouse' && document.pointerLockElement) mouseDown = true;
 });
 cv.addEventListener('pointermove', e => {
+  if (gunCtl()) {
+    if (e.pointerType === 'mouse' && document.pointerLockElement === cv) { gunLook(e.movementX, e.movementY, 0.0028); return; }
+    if (e.pointerId !== look.id) return;
+    gunLook(e.clientX - look.x, e.clientY - look.y, e.pointerType === 'touch' ? 0.006 : 0.004); look.x = e.clientX; look.y = e.clientY; return;
+  }
   if (e.pointerType === 'mouse' && document.pointerLockElement === cv) { lookBy(e.movementX, 0.0028); return; }
   if (e.pointerId !== look.id) return;
   if (!look.swipe) lookBy(e.clientX - look.x, e.pointerType === 'touch' ? 0.0075 : 0.004);
   look.x = e.clientX;
 });
 const lookEnd = e => {
+  if (G.gun) G.gun.hold = false;
   if (e.pointerId === look.id) {
     if (look.swipe && e.type === 'pointerup') {
       const dx = e.clientX - look.x0, dy = e.clientY - look.y0;
@@ -1981,8 +2161,14 @@ const lookEnd = e => {
   }
   if (e.pointerType === 'mouse') mouseDown = false;
 };
+for (const [id, down, up] of [['gCannon', () => { if (gunCtl()) G.gun.hold = true; }, () => { if (G.gun) G.gun.hold = false; }], ['gRocket', () => gunRocket(), () => {}]]) {
+  const el = document.getElementById(id);
+  el.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); down(); });
+  for (const t of ['pointerup', 'pointercancel', 'pointerleave']) el.addEventListener(t, up);
+  el.addEventListener('contextmenu', e => e.preventDefault());
+}
 cv.addEventListener('pointerup', lookEnd); cv.addEventListener('pointercancel', lookEnd);
-addEventListener('mouseup', () => { mouseDown = false; });
+addEventListener('mouseup', () => { mouseDown = false; if (G.gun) G.gun.hold = false; });
 document.addEventListener('pointerlockchange', () => {
   mouseDown = false;
   if (!document.pointerLockElement && state === 'play' && !paused && !wheelOpen) { lastLockPause = performance.now(); togglePause(); }
@@ -2109,7 +2295,7 @@ function updateEngine(dt) {
   e.osc.frequency.value = f; e.osc2.frequency.value = f * 2;
   e.lp.frequency.value = 260 + e.rpm * 0.35 + gas * 500;
   e.g.gain.value = on ? 0.035 + gas * 0.03 + frac * 0.012 : 0;
-  e.heliG.gain.value = on && G.heli ? 0.06 * (0.55 + 0.45 * Math.sin(performance.now() * 0.001 * 6.283 * 13)) : 0;
+  e.heliG.gain.value = on && (G.heli || G.gun) ? 0.06 * (0.55 + 0.45 * Math.sin(performance.now() * 0.001 * 6.283 * 13)) : 0;
   e.siren.sg.gain.value = on && G.policeNear && G.wanted > 0 ? 0.018 : 0;
   e.siren.so.frequency.value = Math.floor(performance.now() / 420) % 2 ? 960 : 720;
 }
@@ -2230,16 +2416,16 @@ function togglePause() {
   if (paused && document.pointerLockElement) document.exitPointerLock();
   if (paused && wheelOpen) { wheelOpen = false; wheelEl.hidden = true; }
 }
-// 結算：金幣 = 分數 ÷ 4 + 每隻 Boss 200，並更新最佳紀錄
+// 結算：金幣 = 分數 ÷ 5 + 每隻 Boss 200，並更新最佳紀錄
 function settle() {
-  const earned = Math.round(stats.score / 4) + stats.boss * 200; save.coins += earned; save.earned += earned; persist();
+  const earned = Math.round(stats.score / 5) + stats.boss * 200; save.coins += earned; save.earned += earned; persist();
   let best = 0; try { best = +localStorage.getItem('rck-best') || 0; if (stats.score > best) { best = stats.score; localStorage.setItem('rck-best', best); } } catch (_) { best = Math.max(best, stats.score); }
   return { earned, best };
 }
 function askHome() {
   if (state !== 'play' || !paused) return;
   if (document.pointerLockElement) document.exitPointerLock();
-  $('#homeScore').textContent = `目前分數 ${stats.score.toLocaleString()}，可得金幣 +${Math.round(stats.score / 4) + stats.boss * 200}`;
+  $('#homeScore').textContent = `目前分數 ${stats.score.toLocaleString()}，可得金幣 +${Math.round(stats.score / 5) + stats.boss * 200}`;
   $('#homeConfirm').hidden = false; $('#homeYes').focus();
 }
 function closeHomeAsk() { $('#homeConfirm').hidden = true; }
