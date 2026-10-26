@@ -343,6 +343,9 @@ button.start:focus-visible { outline: 3px solid var(--amber); outline-offset: 3p
 #intro.run .iwait { display: none; }
 #app.menu #hud, #app.menu #touch { visibility: hidden; }
 #scoreBox { transform: scale(.78) !important; transform-origin: top left; }
+#speedo { scale: .78; transform-origin: left bottom; }
+@media (hover: none) and (pointer: coarse) { #speedo { scale: .8; transform-origin: left top; } }
+@media (hover: none) and (pointer: coarse) and (orientation: landscape) { #speedo { scale: .8; transform-origin: center top; } }
 @media (max-width: 420px) { #scoreBox { transform: scale(.72) !important; } }
 @media (max-width: 360px) { #scoreBox { transform: scale(.58) !important; } }
 </style>
