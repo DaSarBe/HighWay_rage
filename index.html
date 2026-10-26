@@ -366,9 +366,33 @@ button.start:focus-visible { outline: 3px solid var(--amber); outline-offset: 3p
 #achList .item .rw { font: 900 15px var(--font-num); color: var(--amber); white-space: nowrap; }
 #achList .item.done { opacity: .6; }
 #scoreBox { transform: scale(.78) !important; transform-origin: top left; }
+/* 時速面板固定在左下角，技能列疊在它上方 */
 #speedo { scale: .78; transform-origin: left bottom; }
-@media (hover: none) and (pointer: coarse) { #speedo { scale: .8; transform-origin: left top; } }
-@media (hover: none) and (pointer: coarse) and (orientation: landscape) { #speedo { scale: .8; transform-origin: center top; } }
+@media (max-width: 1100px) { #hint { display: none; } }
+@media (hover: none) and (pointer: coarse) and (max-width: 340px) { #speedo { scale: .66; } }
+#a2hs { position: absolute; inset: 0; z-index: 30; display: grid; place-items: center; background: rgba(0,0,0,.6); padding: 16px; }
+#a2hs[hidden] { display: none; }
+.a2hsBox { width: min(380px, 100%); box-sizing: border-box; background: #0d1310; border: 2px solid var(--amber); border-radius: 16px; padding: 20px 20px 16px; text-align: center; color: var(--paper); }
+.a2hsBox h3 { margin: 0 0 8px; font: 900 22px var(--font-display); color: var(--amber); }
+.a2hsBox p { margin: 0 0 16px; font-size: 15px; line-height: 1.6; }
+.a2hsBox .row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.a2hsBox button { font: 900 15px var(--font-display); color: var(--paper); background: rgba(255,255,255,.1); border: 2px solid rgba(243,244,238,.4); border-radius: 10px; padding: 9px 14px; cursor: pointer; }
+.a2hsBox #a2hsOk { background: var(--amber); color: #111; border-color: var(--amber); }
+#skillBar { left: max(16px, env(safe-area-inset-left, 0px)); transform: none; bottom: calc(150px + env(safe-area-inset-bottom, 0px)); }
+@media (hover: none) and (pointer: coarse) {
+  #speedo { top: auto; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); left: max(16px, env(safe-area-inset-left, 0px)); transform: none; scale: .8; transform-origin: left bottom; }
+  #skillBar { left: auto; bottom: auto; }
+  .skill { bottom: calc(146px + env(safe-area-inset-bottom, 0px)); }
+  #skJump, #skGun { bottom: calc(218px + env(safe-area-inset-bottom, 0px)); }
+}
+@media (hover: none) and (pointer: coarse) and (orientation: landscape) {
+  #speedo { top: auto; left: max(16px, env(safe-area-inset-left, 0px)); transform: none; transform-origin: left bottom; }
+  .skill, #skJump, #skGun { bottom: calc(144px + env(safe-area-inset-bottom, 0px)); }
+  #skHeli { left: max(16px, env(safe-area-inset-left, 0px)); }
+  #skTank { left: calc(max(16px, env(safe-area-inset-left, 0px)) + 84px); }
+  #skJump { left: calc(max(16px, env(safe-area-inset-left, 0px)) + 168px); }
+  #skGun { left: calc(max(16px, env(safe-area-inset-left, 0px)) + 252px); }
+}
 @media (max-width: 420px) { #scoreBox { transform: scale(.72) !important; } }
 @media (max-width: 360px) { #scoreBox { transform: scale(.58) !important; } }
 </style>
@@ -510,7 +534,8 @@ button.start:focus-visible { outline: 3px solid var(--amber); outline-offset: 3p
     </div>
   </div>
 
-  <div id="gate" role="button" aria-label="開始遊戲"><canvas id="gateTxt" width="64" height="16"></canvas></div>
+  <div id="a2hs" hidden><div class="a2hsBox"><h3>📲 新增至主畫面</h3><p>新增至主畫面後可以全螢幕暢玩！<br><span id="a2hsHow"></span></p><div class="row"><button id="a2hsOk">立即安裝</button><button id="a2hsLater">稍後再說</button><button id="a2hsNever">不再提醒</button></div></div></div>
+<div id="gate" role="button" aria-label="開始遊戲"><canvas id="gateTxt" width="64" height="16"></canvas></div>
   <div id="intro" aria-hidden="true">
     <div class="iscope"></div>
     <div class="ibar top"></div><div class="ibar bot"></div>
@@ -566,6 +591,29 @@ const MODELS_P = gunzipB64Buf(CAR_MODELS_GZ).then(buf => { CAR_MODELS = JSON.par
 'use strict';
 const $ = s => document.querySelector(s);
 
+// ---------- 新增至主畫面提醒（全螢幕暢玩） ----------
+let installEv = null;
+addEventListener('beforeinstallprompt', e => { e.preventDefault(); installEv = e; });
+function showInstallTip() {
+  const el = $('#a2hs'); if (!el) return;
+  try { if (localStorage.getItem('rck-a2hs') === '1') return; } catch (e) {}
+  if (matchMedia('(display-mode: standalone)').matches || matchMedia('(display-mode: fullscreen)').matches || navigator.standalone) return;
+  const touch = matchMedia('(hover: none) and (pointer: coarse)').matches;
+  if (!touch && !installEv) return;
+  const ios = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  $('#a2hsHow').innerHTML = installEv ? '點下方「立即安裝」，就能從主畫面直接開啟，全螢幕暢玩。'
+    : ios ? '點 Safari 下方的 <b>分享</b> 圖示，再選 <b>加入主畫面</b>，之後從主畫面開啟就是全螢幕。'
+    : '點瀏覽器右上角的 <b>⋮ 選單</b>，選 <b>加到主畫面</b>（或「安裝應用程式」），之後從主畫面開啟就是全螢幕。';
+  $('#a2hsOk').hidden = !installEv;
+  el.hidden = false;
+}
+{
+  const el = $('#a2hs'), close = never => { el.hidden = true; if (never) try { localStorage.setItem('rck-a2hs', '1'); } catch (e) {} };
+  $('#a2hsLater').addEventListener('click', () => close(false));
+  $('#a2hsNever').addEventListener('click', () => close(true));
+  $('#a2hsOk').addEventListener('click', async () => { close(false); if (installEv) { installEv.prompt(); try { await installEv.userChoice; } catch (e) {} installEv = null; } });
+}
+
 // ---------- 開場過場動畫（點一下或按任意鍵可跳過） ----------
 let introOn = true, introRun = false, introT = 0;
 function endIntro() {
@@ -576,6 +624,7 @@ function endIntro() {
   setTimeout(() => {
     el.remove(); $('#app').classList.remove('introing');
     const t = $('#title'); t.hidden = false; t.classList.add('fadein');
+    setTimeout(showInstallTip, 500);
   }, 470);
 }
 function startIntro() {
@@ -589,7 +638,7 @@ function startIntro() {
   const el = $('#intro'), ic = document.querySelector('link[rel="icon"][href^="data:"]');
   if (ic) $('.iscope').style.backgroundImage = `url("${ic.href}")`;
   el.addEventListener('pointerdown', e => { e.preventDefault(); if (introRun) endIntro(); else startIntro(); });
-  if (matchMedia('(prefers-reduced-motion: reduce)').matches) { el.remove(); introOn = false; $('#title').hidden = false; $('#app').classList.remove('introing'); }
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) { el.remove(); introOn = false; $('#title').hidden = false; $('#app').classList.remove('introing'); setTimeout(showInstallTip, 500); }
   const gate = $('#gate');
   gate.addEventListener('pointerdown', e => { e.preventDefault(); startIntro(); });
   if (!introOn) gate.classList.add('out');
