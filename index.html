@@ -486,7 +486,8 @@ function startIntro() {
   if (introRun || !introOn) return; introRun = true;
   initAudio(); if (actx && actx.state === 'suspended') actx.resume();
   $('#intro').classList.add('run'); introT = setTimeout(endIntro, 3900);
-  // 開場音效，時間點對齊畫面動畫（掃描鏡頭、三個字掉下、閃光、副標、標語）
+  // 開場音效，時間點對齊畫面動畫；尚未有過互動、音訊被瀏覽器擋住時就不排（避免之後一起爆出）
+  if (!actx || actx.state !== 'running') return;
   play('dash', 0.6, 0.5);
   [0, 1, 2, 3].forEach(i => play('impact', 0.9 + i * 0.08, 0.7, 1.5 + i * 0.13));
   play('boss', 1, 0.6, 2.05); play('level_up', 1, 0.6, 2.35); play('coin', 1.1, 0.5, 2.75);
@@ -496,6 +497,7 @@ function startIntro() {
   if (ic) $('.iscope').style.backgroundImage = `url("${ic.href}")`;
   el.addEventListener('pointerdown', e => { e.preventDefault(); if (introRun) endIntro(); else startIntro(); });
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) { el.remove(); introOn = false; $('#title').hidden = false; $('#app').classList.remove('introing'); }
+  else requestAnimationFrame(startIntro);   // 載入後直接進入開場動畫，不需先點一下
 }
 const rand = (a, b) => a + Math.random() * (b - a);
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
