@@ -256,11 +256,51 @@ button.start:focus-visible { outline: 3px solid var(--amber); outline-offset: 3p
 @media (hover: none) and (pointer: coarse) and (max-width: 360px) and (orientation: portrait) {
   .skill { bottom: calc(200px + env(safe-area-inset-bottom, 0px)); }
 }
+/* ---------- 開場過場動畫 ---------- */
+#intro { position: absolute; inset: 0; z-index: 9; background: #000; overflow: hidden; cursor: pointer; touch-action: none; }
+#intro > * { opacity: 0; }
+#intro > .ibar, #intro > .iwrap { opacity: 1; }
+.ititle, .isub, .itag { opacity: 0; }
+#intro.out { animation: iOut .45s steps(6) forwards; pointer-events: none; }
+@keyframes iOut { to { opacity: 0; } }
+#intro.run { animation: iBg 1.6s linear forwards; }
+@keyframes iBg { 0%, 42% { background: #000; } 100% { background: rgba(0,0,0,0); } }
+.iscope { position: absolute; inset: 0; margin: auto; width: min(46vmin, 340px); height: min(46vmin, 340px); background-size: 100% 100%; image-rendering: pixelated; }
+#intro.run .iscope { animation: iScope 1.6s both; }
+@keyframes iScope { 0% { opacity: 0; transform: scale(.5); } 10% { opacity: 1; } 16% { opacity: .35; } 22% { opacity: 1; } 42% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(2.6); } }
+.ibar { position: absolute; left: 0; right: 0; height: 0; background: #000; }
+.ibar.top { top: 0; } .ibar.bot { bottom: 0; }
+#intro.run .ibar { animation: iBar 2.9s both .8s; }
+@keyframes iBar { 0% { height: 0; } 12% { height: 13vh; } 88% { height: 13vh; } 100% { height: 0; } }
+.iwrap { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 14px; padding: 0 16px; box-sizing: border-box; }
+#intro.run .iwrap { animation: iShake .32s steps(8) both 2.05s; }
+@keyframes iShake { 0%, 100% { transform: none; } 20% { transform: translate(-6px, 4px); } 40% { transform: translate(6px, -4px); } 60% { transform: translate(-4px, -2px); } 80% { transform: translate(3px, 3px); } }
+.ititle { display: flex; padding: 6px 22px 10px; }
+#intro.run .ititle { animation: iPlate .3s both 1.4s; }
+@keyframes iPlate { 0% { opacity: 0; transform: scale(1.2); } 100% { opacity: 1; transform: none; } }
+.ititle span { display: inline-block; font-size: clamp(52px, 17vw, 150px); font-weight: 900; line-height: 1.1; letter-spacing: .06em; text-shadow: 4px 4px 0 #074a2a, 8px 8px 0 rgba(0,0,0,.35); opacity: 0; }
+#intro.run .ititle span { animation: iDrop .5s both; animation-delay: calc(1.5s + var(--i) * .13s); }
+@keyframes iDrop { 0% { opacity: 0; transform: translateY(-150%) scale(1.7); } 55% { opacity: 1; transform: translateY(10%) scale(.95); } 78% { transform: translateY(-4%) scale(1.03); } 100% { opacity: 1; transform: none; } }
+.isub { font: 900 clamp(15px, 4.2vw, 28px) var(--font-num); color: var(--amber); letter-spacing: .3em; text-indent: .3em; text-shadow: 2px 2px 0 rgba(0,0,0,.6); }
+#intro.run .isub { animation: iSub .5s both 2.35s; }
+@keyframes iSub { 0% { opacity: 0; letter-spacing: .8em; } 100% { opacity: 1; letter-spacing: .3em; } }
+.itag { font-size: clamp(14px, 3.8vw, 20px); font-weight: 700; color: var(--paper); letter-spacing: .12em; text-shadow: 2px 2px 0 rgba(0,0,0,.6); }
+#intro.run .itag { animation: iFade .5s both 2.75s; }
+@keyframes iFade { to { opacity: 1; } }
+.iflash { position: absolute; inset: 0; background: #fff; }
+#intro.run .iflash { animation: iFlash .35s forwards 2.05s; }
+@keyframes iFlash { 0% { opacity: .85; } 100% { opacity: 0; } }
+.iskip { position: absolute; bottom: calc(3.5vh + env(safe-area-inset-bottom, 0px)); left: 0; right: 0; text-align: center; font-size: 13px; font-weight: 700; color: var(--muted); letter-spacing: .1em; }
+#intro.run .iskip { animation: iFade .5s both .8s; }
+#app.introing #hud, #app.introing #touch, #app.introing #speech { visibility: hidden; }
+#title.fadein { animation: tFade .5s both; }
+@keyframes tFade { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { #intro { display: none; } }
 </style>
 
 </head>
 <body>
-<div id="app">
+<div id="app" class="introing">
   <div id="hud">
     <div id="vignette"></div>
     <div id="scoreBox" class="sign">
@@ -308,7 +348,7 @@ button.start:focus-visible { outline: 3px solid var(--amber); outline-offset: 3p
 
   <div id="wheel" hidden><svg id="wheelSvg" viewBox="-260 -260 520 520"></svg></div>
 
-  <div id="title" class="overlay">
+  <div id="title" class="overlay" hidden>
     <div class="board sign">
       <h1>國道戰神</h1>
       <div class="sub">國道清道夫　第一人稱駕駛</div>
@@ -356,6 +396,18 @@ button.start:focus-visible { outline: 3px solid var(--amber); outline-offset: 3p
     </div>
   </div>
 
+  <div id="intro" aria-hidden="true">
+    <div class="iscope"></div>
+    <div class="ibar top"></div><div class="ibar bot"></div>
+    <div class="iwrap">
+      <div class="ititle sign"><span style="--i:0">國</span><span style="--i:1">道</span><span style="--i:2">戰</span><span style="--i:3">神</span></div>
+      <div class="isub">HIGHWAY RAGE</div>
+      <div class="itag">清掃三寶　殲滅路隊長</div>
+    </div>
+    <div class="iflash"></div>
+    <div class="iskip">點一下畫面或按任意鍵跳過</div>
+  </div>
+
   <div id="pause" class="overlay" hidden>
     <div class="board sign">
       <h1>暫停</h1><div class="sub">按 P、Esc 或點一下畫面繼續</div>
@@ -391,6 +443,21 @@ const CAR_MODELS = {"sedan":{"size":[1.9,1.647,3.23],"bodyHex":16411457,"tail":{
 <script>
 'use strict';
 const $ = s => document.querySelector(s);
+
+// ---------- 開場過場動畫（點一下或按任意鍵可跳過） ----------
+let introOn = true, introT = 0;
+function endIntro() {
+  if (!introOn) return; introOn = false; clearTimeout(introT);
+  const el = $('#intro'), t = $('#title'); t.hidden = false; t.classList.add('fadein'); $('#app').classList.remove('introing');
+  el.classList.add('out'); setTimeout(() => el.remove(), 500);
+}
+{
+  const el = $('#intro'), ic = document.querySelector('link[rel="icon"][href^="data:"]');
+  if (ic) $('.iscope').style.backgroundImage = `url("${ic.href}")`;
+  el.addEventListener('pointerdown', e => { e.preventDefault(); endIntro(); });
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) { el.remove(); introOn = false; $('#title').hidden = false; $('#app').classList.remove('introing'); }
+  else { requestAnimationFrame(() => el.classList.add('run')); introT = setTimeout(endIntro, 3900); }
+}
 const rand = (a, b) => a + Math.random() * (b - a);
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const hash = n => { const x = Math.sin(n * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
@@ -1585,6 +1652,7 @@ addEventListener('keydown', e => {
   if (BLOCK.includes(e.code)) e.preventDefault();
   const first = !keys[e.code]; keys[e.code] = true;
   if (!first || e.repeat) return;
+  if (introOn) { endIntro(); return; }
   if (!$('#shop').hidden) { if (e.code === 'Escape') closeShop(); return; }
   if (state !== 'play') { if (e.code === 'Enter' || (e.code === 'Space' && state === 'title')) startGame(); return; }
   if (!$('#homeConfirm').hidden) { if (e.code === 'Escape' || e.code === 'KeyP') closeHomeAsk(); return; }
