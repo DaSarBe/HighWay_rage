@@ -672,6 +672,47 @@ const limitSigns = [0, 1].map(() => {
   const disk = new THREE.Mesh(new THREE.CircleGeometry(0.75, 32), new THREE.MeshBasicMaterial({ map: limitTex, transparent: true })); disk.position.set(0, 3.2, 0.07); g.add(disk);
   g.position.x = 10.6; scene.add(g); return { g };
 });
+// ---------- 路邊廣告牌 ----------
+// 廣告商素材放這裡：img 填圖片網址（建議 1024×384、同網域或允許跨網域載入），沒填圖就用 title/sub 文字版面。
+// 廣告牌依序輪播這份清單，加幾筆都可以；清單留空則不顯示廣告牌。
+const ADS = [
+  { title: '廣告招商中', sub: '你的品牌，就在國道旁', bg: '#c9322a', fg: '#ffffff', accent: '#ffd23f' },
+  { title: '國道戰神', sub: '連殺不停・衝破千分', bg: '#0b6a3d', fg: '#f3f4ee', accent: '#ffd23f' },
+  { title: '招商洽詢', sub: '歡迎品牌合作投放', bg: '#1f3f73', fg: '#ffffff', accent: '#7fd4ff' },
+  { title: '此處可刊登', sub: '黃金路段・曝光滿檔', bg: '#2b2f36', fg: '#ffffff', accent: '#ff8a1f' },
+];
+const AD_SPACING = 260, AD_POOL = 5, AD_X = 17.5;
+const adSide = k => (k % 2 === 0 ? 1 : -1);
+const adS = k => k * AD_SPACING + 120;
+const adTexCache = new Map();
+function adTexture(ad, idx) {
+  if (adTexCache.has(idx)) return adTexCache.get(idx);
+  const draw = (g, w, h, img) => {
+    if (img) { g.drawImage(img, 0, 0, w, h); return; }
+    g.fillStyle = ad.bg || '#333'; g.fillRect(0, 0, w, h);
+    g.fillStyle = ad.accent || '#ffd23f'; g.fillRect(0, h - 26, w, 26); g.fillRect(0, 0, w, 12);
+    g.fillStyle = ad.fg || '#fff'; g.textAlign = 'center';
+    g.font = '900 150px "Noto Sans TC", sans-serif'; g.fillText(ad.title || '', w / 2, 190, w - 80);
+    g.font = '700 70px "Noto Sans TC", sans-serif'; g.fillText(ad.sub || '', w / 2, 296, w - 80);
+  };
+  const tex = canvasTex(1024, 384, (g, w, h) => draw(g, w, h));
+  if (ad.img) {
+    const im = new Image(); im.crossOrigin = 'anonymous';
+    im.onload = () => { const c = tex.image, g = c.getContext('2d'); try { draw(g, c.width, c.height, im); tex.needsUpdate = true; } catch (_) {} };
+    im.src = ad.img;
+  }
+  adTexCache.set(idx, tex); return tex;
+}
+const adBoards = ADS.length ? Array.from({ length: AD_POOL }, () => {
+  const g = new THREE.Group(), steel = new THREE.MeshLambertMaterial({ color: 0x8c9296 });
+  for (const x of [-2.6, 2.6]) { const p = new THREE.Mesh(new THREE.BoxGeometry(0.3, 9, 0.3), steel); p.position.set(x, 4.5, -0.3); g.add(p); }
+  const frame = new THREE.Mesh(new THREE.BoxGeometry(8.5, 3.4, 0.25), new THREE.MeshLambertMaterial({ color: 0x2a2d30 })); frame.position.set(0, 9.6, -0.2); g.add(frame);
+  const face = new THREE.Mesh(new THREE.PlaneGeometry(8, 3), new THREE.MeshBasicMaterial({ color: 0xffffff })); face.position.set(0, 9.6, 0); g.add(face);
+  const light = new THREE.Mesh(new THREE.BoxGeometry(6.4, 0.12, 0.12), new THREE.MeshBasicMaterial({ color: 0xfff2c0 })); light.position.set(0, 11.5, 0.3); g.add(light);
+  scene.add(g); return { g, face, idx: null };
+}) : [];
+// 廣告牌所在位置附近不種樹，避免樹冠穿過看板
+const nearAd = (s, x) => { const k = Math.round((s - 120) / AD_SPACING); return k >= 0 && Math.abs(adS(k) - s) < 16 && Math.abs(x - adSide(k) * AD_X) < 9; };
 function slotIdx(i, n, start) { return start + (((i - start) % n) + n) % n; }
 
 function updateScenery(ps) {
@@ -680,12 +721,12 @@ function updateScenery(ps) {
   placeRow(posts, 200, 4, ps, 40, (d) => { d.position.x = 9.25; d.position.y = 0.4; });
   placeRow(joints, 130, 6, ps, 40, (d) => { d.position.x = -9.3; d.position.y = 0.47; });
   placeRow(trunks, 90, 9, ps, 40, (d, idx) => {
-    const side = hash(idx) < 0.5 ? -1 : 1, sc = hash(idx + 3) < 0.25 ? 0.0001 : 0.8 + hash(idx + 5) * 0.8;
-    d.position.x = side * (14 + hash(idx + 7) * 40); d.position.y = 1.5 * sc; d.scale.setScalar(sc);
+    const side = hash(idx) < 0.5 ? -1 : 1, tx = side * (14 + hash(idx + 7) * 40), sc = hash(idx + 3) < 0.25 || (ADS.length && nearAd(idx * 9, tx)) ? 0.0001 : 0.8 + hash(idx + 5) * 0.8;
+    d.position.x = tx; d.position.y = 1.5 * sc; d.scale.setScalar(sc);
   });
   placeRow(crowns, 90, 9, ps, 40, (d, idx) => {
-    const side = hash(idx) < 0.5 ? -1 : 1, sc = hash(idx + 3) < 0.25 ? 0.0001 : 0.8 + hash(idx + 5) * 0.8;
-    d.position.x = side * (14 + hash(idx + 7) * 40); d.position.y = 5.5 * sc; d.scale.setScalar(sc);
+    const side = hash(idx) < 0.5 ? -1 : 1, tx = side * (14 + hash(idx + 7) * 40), sc = hash(idx + 3) < 0.25 || (ADS.length && nearAd(idx * 9, tx)) ? 0.0001 : 0.8 + hash(idx + 5) * 0.8;
+    d.position.x = tx; d.position.y = 5.5 * sc; d.scale.setScalar(sc);
   });
   placeRow(poles, 14, 55, ps, 40, (d) => { d.position.set(9.9, 4.75, d.position.z); });
   placeRow(arms, 14, 55, ps, 40, (d) => { d.position.set(8.7, 9.4, d.position.z); });
@@ -706,6 +747,17 @@ function updateScenery(ps) {
         o.plate.material.map?.dispose();
         o.plate.material.map = canvasTex(150, 100, (g, w, h) => { g.fillStyle = '#0b6a3d'; g.fillRect(0, 0, w, h); g.fillStyle = '#fff'; g.textAlign = 'center'; g.font = '700 46px "Chakra Petch", sans-serif'; g.fillText((KM0 + idx * 0.1).toFixed(1), w / 2, 66); });
         o.plate.material.needsUpdate = true;
+      }
+    });
+  }
+  if (adBoards.length) {
+    const start = Math.max(0, Math.floor((ps - 60 - 120) / AD_SPACING));
+    adBoards.forEach((o, i) => {
+      const k = slotIdx(i, AD_POOL, start);
+      if (o.idx !== k) {
+        o.idx = k; const side = adSide(k);
+        o.g.position.set(side * AD_X, 0, -adS(k)); o.g.rotation.y = -side * 0.3;
+        o.face.material.map = adTexture(ADS[k % ADS.length], k % ADS.length); o.face.material.needsUpdate = true;
       }
     });
   }
