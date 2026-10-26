@@ -2539,9 +2539,7 @@ function initAudio() {
     const hl = actx.createBiquadFilter(); hl.type = 'lowpass'; hl.frequency.value = 240;
     const hg = actx.createGain(); hg.gain.value = 0; ho.connect(hl).connect(hg).connect(actx.destination); ho.start(); engine.heliG = hg;
     loadSamples();
-    musicFilter = actx.createBiquadFilter(); musicFilter.type = 'lowpass'; musicFilter.frequency.value = 20000;
-    musicGain = actx.createGain(); musicGain.gain.value = 0;
-    musicFilter.connect(musicGain).connect(actx.destination);
+    musicInit();
   } catch (_) { actx = null; }
 }
 function sfx(kind) {
@@ -2594,52 +2592,78 @@ function updateEngine(dt) {
   e.siren.so.frequency.value = Math.floor(performance.now() / 420) % 2 ? 960 : 720;
 }
 
-// ---------- 背景音樂：自製 8-bit 賽車風曲子（A 小調，Am–F–C–G，150 BPM） ----------
-let musicGain = null, musicFilter = null, musicOn = true, musicStep = 0, musicNext = 0;
-const STEP = 60 / 150 / 4;   // 十六分音符
-const CHORDS = [['A2', 'C4', 'E4', 'A4'], ['F2', 'A3', 'C4', 'F4'], ['C3', 'E4', 'G4', 'C5'], ['G2', 'B3', 'D4', 'G4']];
-// 主旋律以八分音符為單位：音名、'-' 延長、'.' 休止
-const MELODY = [
-  'E5 . E5 D5 C5 D5 E5 A5', '- G5 F5 E5 C5 - A4 C5', 'E5 . E5 G5 - E5 D5 C5', 'D5 - B4 G4 B4 D5 G5 -',
-  'A5 - G5 A5 - E5 C5 E5', 'F5 - E5 F5 - C5 A4 C5', 'G5 - F5 E5 - D5 C5 E5', 'D5 . G5 . B5 . D6 -',
+// ---------- 背景音樂：8-bit 賽車風，平靜／追逐兩種強度（A 小調 Am–F–C–G） ----------
+let musicGain = null, musicFilter = null, musicBus = null, musicBassBus = null;
+let musicOn = true, musicStep = 0, musicNext = 0, musicMode = 'calm', musicStepDur = 60 / 118 / 4, musicChaseUntil = 0;
+const MUSIC_CHORDS = [['A2', 'C4', 'E4', 'A4'], ['F2', 'A3', 'C4', 'F4'], ['C3', 'E4', 'G4', 'C5'], ['G2', 'B3', 'D4', 'G4']];
+// 16 小節主旋律，每小節 8 個八分音符；'-' 延長、'.' 休止
+const MUSIC_MELODY = [
+  'E5 - A5 C6 B5 A5 E5 A5', 'F5 - A5 C6 A5 F5 C5 F5', 'G5 - C6 E6 D6 C6 G5 C6', 'B5 - D6 G5 B5 D6 - B5',
+  'A5 C6 E6 - D6 C6 A5 .', 'F6 - C6 A5 F5 A5 C6 -', 'E6 D6 C6 G5 C6 - E6 G6', 'D6 - B5 G5 D6 B5 G5 -',
+  'A6 - E6 C6 A5 C6 E6 -', 'A6 G6 F6 - C6 F6 A6 -', 'G6 - E6 C6 G5 E6 C6 -', 'D6 B5 D6 G6 - B6 - G6',
+  'E6 - A6 E6 C6 A6 E6 -', 'F6 - A6 C7 A6 F6 C6 A5', 'E6 G6 C7 - B6 G6 E6 .', 'D6 - G6 B6 D7 B6 G6 -',
 ].map(b => b.split(' ')).flat();
+const MUSIC_LOOP = MUSIC_MELODY.length * 2; // 十六分音符計數：16 小節 × 16 = 256 步後循環
+
+function musicInit() {
+  musicGain = actx.createGain(); musicGain.gain.value = 0;          // 總開關（暫停、選單、靜音時為 0）
+  const comp = actx.createDynamicsCompressor();                      // 壓縮器：讓聲音更飽滿有衝擊
+  comp.threshold.value = -14; comp.ratio.value = 5; comp.attack.value = 0.003; comp.release.value = 0.12;
+  musicFilter = actx.createBiquadFilter(); musicFilter.type = 'lowpass'; musicFilter.frequency.value = 20000;
+  musicBus = actx.createGain(); musicBus.gain.value = 0.6;
+  musicBassBus = actx.createBiquadFilter(); musicBassBus.type = 'lowpass'; musicBassBus.frequency.value = 520;
+  musicBassBus.connect(musicBus);
+  musicBus.connect(comp).connect(musicFilter).connect(musicGain).connect(actx.destination);
+}
 function noteHz(n) {
   const m = /^([A-G])(#?)(\d)$/.exec(n);
   const midi = (+m[3] + 1) * 12 + { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 }[m[1]] + (m[2] ? 1 : 0);
   return 440 * Math.pow(2, (midi - 69) / 12);
 }
-function blip(type, hz, t, dur, vol, hz2) {
+function blip(type, hz, t, dur, vol, hz2, dest) {
   const o = actx.createOscillator(); o.type = type; o.frequency.setValueAtTime(hz, t);
   if (hz2) o.frequency.exponentialRampToValueAtTime(hz2, t + dur);
   const g = actx.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + 0.004);
   g.gain.setValueAtTime(vol, t + dur * 0.7); g.gain.linearRampToValueAtTime(0, t + dur);
-  o.connect(g).connect(musicFilter); o.start(t); o.stop(t + dur + 0.01);
+  o.connect(g).connect(dest || musicBus); o.start(t); o.stop(t + dur + 0.02);
 }
 function hit(t, dur, vol, freq, type) {
   const src = actx.createBufferSource(); src.buffer = noiseBuf;
   const f = actx.createBiquadFilter(); f.type = type; f.frequency.value = freq;
   const g = actx.createGain(); g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
-  src.connect(f).connect(g).connect(musicFilter); src.start(t, Math.random() * 0.5); src.stop(t + dur);
+  src.connect(f).connect(g).connect(musicBus); src.start(t, Math.random() * 0.5); src.stop(t + dur + 0.02);
 }
+function musicKick(t) { blip('sine', 160, t, 0.2, 0.55, 38); }
+function musicSnare(t) { hit(t, 0.16, 0.16, 1800, 'bandpass'); blip('triangle', 190, t, 0.08, 0.09, 120); }
 function scheduleStep(step, t) {
-  const bar = Math.floor(step / 16), i = step % 16, chord = CHORDS[bar % 4];
-  // 低音：八分音符八度跳動
-  if (i % 2 === 0) blip('triangle', noteHz(chord[0]) * (i % 4 === 2 ? 2 : 1), t, STEP * 1.8, 0.16);
-  // 琶音：十六分音符輪流彈和弦音
-  blip('square', noteHz(chord[1 + (i % 3)]) * 2, t, STEP * 0.6, 0.018);
-  // 主旋律
+  const chase = musicMode === 'chase', sd = musicStepDur;
+  const i = step % 16, bar = Math.floor(step / 16) % 16, chord = MUSIC_CHORDS[bar % 4];
+  // 低音
+  const root = noteHz(chord[0]);
+  if (chase) blip('sawtooth', i % 2 === 0 ? root : root * 2, t, sd * 0.85, i % 2 === 0 ? 0.11 : 0.06, null, musicBassBus);
+  else if (i % 2 === 0) blip('triangle', root, t, sd * 1.9, 0.18, null, musicBassBus);
+  // 鼓組
+  if (chase) {
+    if (i % 4 === 0) musicKick(t);
+    if (i === 4 || i === 12) musicSnare(t);
+    if (i % 2 === 0) hit(t, 0.03, 0.045, 7000, 'highpass'); else hit(t, 0.05, 0.075, 8000, 'highpass');
+    if (bar % 4 === 3 && i >= 12) hit(t, sd, 0.03 * (i - 11), 3000, 'bandpass'); // 每四小節結尾的漸強
+  } else {
+    if (i === 0 || i === 8) musicKick(t);
+    if (i === 8) musicSnare(t);
+    if (i % 4 === 2) hit(t, 0.03, 0.03, 7000, 'highpass');
+  }
+  // 琶音（追逐才有）
+  if (chase) blip('square', noteHz(chord[1 + (i % 3)]) * 2, t, sd * 0.6, 0.016);
+  // 主旋律（雙層略微失諧，聲音更厚）
   if (i % 2 === 0) {
-    const k = bar * 8 + i / 2, n = MELODY[k];
+    const k = (bar * 8 + i / 2) % MUSIC_MELODY.length, n = MUSIC_MELODY[k];
     if (n !== '.' && n !== '-') {
-      let len = 1; while (MELODY[(k + len) % MELODY.length] === '-' && len < 4) len++;
-      blip('square', noteHz(n), t, STEP * 2 * len * 0.92, 0.05);
+      let len = 1; while (MUSIC_MELODY[(k + len) % MUSIC_MELODY.length] === '-' && len < 4) len++;
+      const dur = sd * 2 * len * 0.92, hz = noteHz(n), vol = chase ? 0.035 : 0.03;
+      blip('square', hz, t, dur, vol); blip('square', hz * 1.006, t, dur, vol);
     }
   }
-  // 鼓組
-  if (i === 0 || i === 8 || i === 10) blip('sine', 150, t, 0.13, 0.32, 40);
-  if (i === 4 || i === 12) { hit(t, 0.13, 0.16, 1800, 'bandpass'); blip('triangle', 190, t, 0.06, 0.08, 120); }
-  if (i % 2 === 0) hit(t, 0.03, 0.05, 7000, 'highpass');
-  else if (i % 4 === 3) hit(t, 0.09, 0.035, 6000, 'highpass');
 }
 function updateMusic() {
   if (!actx || !musicGain) return;
@@ -2647,9 +2671,17 @@ function updateMusic() {
   musicGain.gain.value = playing ? 0.55 : 0;
   musicFilter.frequency.value = wheelOpen ? 700 : 20000;   // 開轉盤時音樂變悶，像 GTA 的慢動作
   if (!playing) { musicNext = 0; return; }
-  const now = actx.currentTime;
-  if (musicNext < now) musicNext = now + 0.05;
-  while (musicNext < now + 0.15) { scheduleStep(musicStep, musicNext); musicNext += STEP; musicStep = (musicStep + 1) % (MELODY.length * 2); }
+  // 追逐判定：有通緝、警車逼近、直升機或機槍支援時切到追逐；追逐會至少維持 6 秒，避免忽快忽慢
+  const now = performance.now();
+  if (state === 'play' && (G.wanted > 0 || G.policeNear || G.heli || G.gun)) musicChaseUntil = now + 6000;
+  const wantChase = now < musicChaseUntil;
+  if (wantChase !== (musicMode === 'chase')) {
+    musicMode = wantChase ? 'chase' : 'calm';
+    musicStepDur = (wantChase ? 60 / 172 : 60 / 118) / 4;
+  }
+  const at = actx.currentTime;
+  if (musicNext < at) musicNext = at + 0.05;
+  while (musicNext < at + 0.15) { scheduleStep(musicStep, musicNext); musicNext += musicStepDur; musicStep = (musicStep + 1) % MUSIC_LOOP; }
 }
 
 // ---------- 新手教學（第一次遊玩：油門、換車道、攻擊、直升機；完成或略過後不再出現） ----------
