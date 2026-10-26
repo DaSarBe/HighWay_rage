@@ -228,6 +228,20 @@ button.start:focus-visible { outline: 3px solid var(--amber); outline-offset: 3p
   #scoreBox { min-width: 0; padding: 6px 12px 8px; }
   #routeBox { padding: 6px 10px; }
 }
+/* ---------- 響應式：小螢幕縮小 HUD 與觸控鈕，避免疊在一起 ---------- */
+@media (max-width: 420px) {
+  #scoreBox { transform: scale(.8); transform-origin: top left; }
+  #routeBox { transform: scale(.8); transform-origin: top right; }
+}
+@media (max-width: 360px) {
+  #scoreBox, #routeBox { transform: scale(.72); }
+  #tLeft, #tRight { width: 64px; height: 64px; font-size: 22px; }
+  #tRight { left: calc(max(16px, env(safe-area-inset-left, 0px)) + 72px); }
+  #tBrake { right: calc(max(16px, env(safe-area-inset-right, 0px)) + 72px); width: 64px; }
+}
+@media (hover: none) and (pointer: coarse) and (max-width: 360px) and (orientation: portrait) {
+  .skill { bottom: calc(200px + env(safe-area-inset-bottom, 0px)); }
+}
 </style>
 
 <div id="app">
