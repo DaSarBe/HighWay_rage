@@ -168,6 +168,10 @@ body { margin: 0; background: #0d1310; color: var(--paper); font-family: var(--f
 .chip.s { background: var(--amber); }
 .chip.c { background: var(--red); color: var(--paper); }
 .chip.n { background: var(--paper); }
+.cloudBox { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; justify-content: center; font: 600 13px var(--font-body, inherit); color: var(--paper); }
+.cloudBox button { font: 700 13px var(--font-display); color: var(--paper); background: transparent; border: 1.5px solid var(--paper); border-radius: 8px; padding: 5px 12px; cursor: pointer; }
+.cloudBox #cloudInfo { opacity: .85; }
+.cloudBox #cloudInfo.err { color: #ffb4a8; opacity: 1; }
 .coinTag { margin-top: 10px; font: 700 17px var(--font-num); color: var(--amber); }
 .go .ghost { font: 700 17px var(--font-display); color: var(--paper); background: transparent; border: 2px solid var(--paper); border-radius: 8px; padding: 8px 20px; cursor: pointer; letter-spacing: .08em; }
 .go .ghost:hover { background: rgba(255,255,255,.12); }
@@ -383,6 +387,7 @@ button.start:focus-visible { outline: 3px solid var(--amber); outline-offset: 3p
       </div>
       <div class="credit">音效取自 Kenney 的 CC0 音效包；車輛與戰車 3D 模型取自 Kenney Car Kit、Quaternius（皆為 CC0）；背景音樂與引擎聲為程式合成。</div>
       <div class="coinTag" id="titleCoin"></div>
+      <div class="cloudBox" id="cloudBox" hidden><button class="ghost" id="loginBtn">以 Google 登入，保存紀錄</button><span id="cloudInfo"></span><button class="ghost" id="logoutBtn" hidden>登出</button></div>
       <div class="go"><button class="start" id="startBtn">上路</button><button class="ghost" id="shopBtn1">車庫商店</button><small class="kbOnly">或按 Enter 開始</small></div>
     </div>
   </div>
@@ -467,9 +472,9 @@ const LANES = [-5.25, -1.75, 1.75, 5.25];   // 0 為內側（超車道）
 let MAX_SPEED = 47;                          // m/s，約 170 km/h（引擎改造會提高）
 let PMAX = 100, HELI_CD = 30;                // 車況上限、空中支援冷卻（車體／技能改造會調整）
 const SAVE_KEY = 'rck-save';
-const save = { coins: 0, own: {}, up: { engine: 0, body: 0, armor: 0, ammo: 0, heli: 0, tank: 0 } };
-try { const o = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'); if (o) { save.coins = +o.coins || 0; Object.assign(save.own, o.own); Object.assign(save.up, o.up); } } catch (_) {}
-const persist = () => { try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch (_) {} };
+const save = { coins: 0, earned: -1, uid: '', own: {}, up: { engine: 0, body: 0, armor: 0, ammo: 0, heli: 0, tank: 0 } };
+try { const o = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'); if (o) { save.coins = +o.coins || 0; save.earned = o.earned >= 0 ? +o.earned : -1; save.uid = typeof o.uid === 'string' ? o.uid : ''; Object.assign(save.own, o.own); Object.assign(save.up, o.up); } } catch (_) {}
+const persist = () => { try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch (_) {} cloudDirty(); };
 const KM0 = 34;
 
 // ---------- 道具 ----------
@@ -501,6 +506,14 @@ const UPGRADES = [
   { id: 'heli',   name: '空中支援改裝', max: 3, base: 300, desc: lv => `冷卻 −5 秒（目前 ${30 - 5 * lv} 秒）` },
   { id: 'tank',   name: '戰車車庫', max: 2, base: 500, desc: lv => `地表最強次數 +1（目前 ${3 + lv} 次）` },
 ];
+// 累計獲得金幣 earned：用來在多裝置合併存檔（金幣 = earned − 已花費）
+function spentOf(s) {
+  let t = 0;
+  WEAPONS.forEach(w => { if (w.price > 0 && s.own[w.id]) t += w.price; });
+  UPGRADES.forEach(u => { for (let i = 0; i < (s.up[u.id] || 0); i++) t += u.base * (i + 1); });
+  return t;
+}
+if (!(save.earned >= 0)) save.earned = save.coins + spentOf(save);
 function applyUpgrades() {
   const u = save.up;
   MAX_SPEED = 47 + 2 * u.engine; PMAX = 100 + 20 * u.body; HELI_CD = 30 - 5 * u.heli;
@@ -1907,7 +1920,7 @@ function startGame() {
 function togglePause() { paused = !paused; $('#pause').hidden = !paused; if (paused && document.pointerLockElement) document.exitPointerLock(); if (paused && wheelOpen) { wheelOpen = false; wheelEl.hidden = true; } }
 // 結算：金幣 = 分數 ÷ 4 + 每隻 Boss 200，並更新最佳紀錄
 function settle() {
-  const earned = Math.round(stats.score / 4) + stats.boss * 200; save.coins += earned; persist();
+  const earned = Math.round(stats.score / 4) + stats.boss * 200; save.coins += earned; save.earned += earned; persist();
   let best = 0; try { best = +localStorage.getItem('rck-best') || 0; if (stats.score > best) { best = stats.score; localStorage.setItem('rck-best', best); } } catch (_) { best = Math.max(best, stats.score); }
   return { earned, best };
 }
@@ -1962,6 +1975,89 @@ $('#shopBtn1').addEventListener('click', () => openShop('#title'));
 $('#shopBtn2').addEventListener('click', () => openShop('#over'));
 $('#shopBack').addEventListener('click', closeShop);
 refreshTitleCoin();
+// ---------- 雲端存檔（Firebase Google 登入 + Firestore；未填設定時整組功能隱藏） ----------
+const FIREBASE_CONFIG = { apiKey: '', authDomain: '', projectId: '', appId: '' };
+const FB_VER = '10.12.2';
+const cloud = { auth: null, db: null, user: null, ready: false, timer: 0, retry: 0, msg: '', err: false };
+function loadScript(src) {
+  return new Promise((ok, no) => { const el = document.createElement('script'); el.src = src; el.onload = ok; el.onerror = () => no(new Error('load ' + src)); document.head.appendChild(el); });
+}
+function cloudUI() {
+  const box = $('#cloudBox'); if (!cloud.auth) { box.hidden = true; return; }
+  box.hidden = false;
+  $('#loginBtn').hidden = !!cloud.user; $('#logoutBtn').hidden = !cloud.user;
+  const info = $('#cloudInfo'); info.className = cloud.err ? 'err' : '';
+  info.textContent = cloud.msg || (cloud.user ? '已登入：' + (cloud.user.displayName || cloud.user.email || '玩家') : '尚未登入，紀錄只存在這個瀏覽器');
+}
+function cloudSay(msg, err) { cloud.msg = msg; cloud.err = !!err; cloudUI(); }
+function readBest() { try { return +localStorage.getItem('rck-best') || 0; } catch (_) { return 0; } }
+function mergeSave(r) {
+  r = r || {};
+  const own = Object.assign({}, r.own || {}, save.own), up = {};
+  Object.keys(save.up).forEach(k => { up[k] = Math.max(save.up[k] || 0, +(r.up && r.up[k]) || 0); });
+  const m = { own, up }; m.earned = Math.max(save.earned, +r.earned || 0, 0);
+  m.coins = Math.max(0, m.earned - spentOf(m)); m.best = Math.max(readBest(), +r.best || 0);
+  return m;
+}
+function cloudPayload() {
+  const u = cloud.user;
+  return { coins: save.coins, earned: save.earned, own: save.own, up: save.up, best: readBest(), name: String((u && u.displayName) || '').slice(0, 40), updatedAt: firebase.firestore.FieldValue.serverTimestamp() };
+}
+async function cloudPush() {
+  clearTimeout(cloud.timer); clearTimeout(cloud.retry); cloud.timer = 0;
+  if (!cloud.user || !cloud.ready) return;
+  try { await cloud.db.collection('players').doc(cloud.user.uid).set(cloudPayload()); cloudSay('已同步到雲端'); }
+  catch (e) { cloudSay('同步失敗，稍後自動重試', true); cloud.retry = setTimeout(cloudPush, 15000); }
+}
+function cloudDirty() {
+  if (!cloud.user || !cloud.ready) return;
+  clearTimeout(cloud.timer); cloud.timer = setTimeout(cloudPush, 1200); cloudSay('同步中…');
+}
+async function cloudPull(user) {
+  cloud.ready = false; cloudSay('讀取雲端存檔…');
+  try {
+    const snap = await cloud.db.collection('players').doc(user.uid).get(), r = snap.exists ? snap.data() : null;
+    if (save.uid && save.uid !== user.uid && r) {
+      if (!confirm('這台裝置上的紀錄屬於另一個帳號。\n按「確定」把它併入目前帳號，按「取消」改用目前帳號的雲端紀錄。')) { save.coins = 0; save.earned = 0; save.own = {}; Object.keys(save.up).forEach(k => save.up[k] = 0); }
+    }
+    const m = mergeSave(r);
+    save.own = m.own; save.up = m.up; save.earned = m.earned; save.coins = m.coins; save.uid = user.uid;
+    try { localStorage.setItem('rck-best', m.best); } catch (_) {}
+    cloud.ready = true; applyUpgrades(); persist(); refreshTitleCoin(); if (!$('#shop').hidden) renderShop();
+    await cloudPush();
+  } catch (e) { cloud.ready = false; cloudSay('讀取雲端失敗：' + ((e && e.code) || '網路或權限問題'), true); }
+}
+function inAppBrowser() { return /Line\/|FBAN|FBAV|Instagram|MicroMessenger|; wv\)/i.test(navigator.userAgent); }
+async function cloudLogin() {
+  if (inAppBrowser()) { cloudSay('Google 不允許在這個內建瀏覽器登入，請改用 Safari 或 Chrome 開啟', true); return; }
+  cloudSay('開啟 Google 登入…');
+  const provider = new firebase.auth.GoogleAuthProvider();
+  try { await cloud.auth.signInWithPopup(provider); }
+  catch (e) {
+    const c = e && e.code;
+    if (c === 'auth/popup-closed-by-user' || c === 'auth/cancelled-popup-request') cloudSay('');
+    else if (c === 'auth/popup-blocked' || c === 'auth/operation-not-supported-in-this-environment') { try { await cloud.auth.signInWithRedirect(provider); } catch (e2) { cloudSay('登入失敗：' + ((e2 && e2.code) || '未知錯誤'), true); } }
+    else cloudSay('登入失敗：' + (c === 'auth/unauthorized-domain' ? '網域尚未加入 Firebase 授權網域' : (c || '未知錯誤')), true);
+  }
+}
+async function initCloud() {
+  if (!FIREBASE_CONFIG.apiKey) return;
+  try {
+    for (const m of ['app', 'auth', 'firestore']) await loadScript(`https://www.gstatic.com/firebasejs/${FB_VER}/firebase-${m}-compat.js`);
+    firebase.initializeApp(FIREBASE_CONFIG);
+    cloud.auth = firebase.auth(); cloud.db = firebase.firestore();
+  } catch (e) { cloud.auth = null; cloudUI(); return; }
+  $('#loginBtn').addEventListener('click', cloudLogin);
+  $('#logoutBtn').addEventListener('click', async () => { try { await cloud.auth.signOut(); } catch (_) {} });
+  cloud.auth.getRedirectResult().catch(e => cloudSay('登入失敗：' + ((e && e.code) || '未知錯誤'), true));
+  cloud.auth.onAuthStateChanged(u => {
+    cloud.user = u; cloud.ready = false; clearTimeout(cloud.timer); clearTimeout(cloud.retry);
+    cloud.msg = ''; cloud.err = false; cloudUI();
+    if (u) cloudPull(u);
+  });
+  cloudUI();
+}
+initCloud();
 $('#startBtn').addEventListener('click', startGame);
 $('#resumeBtn').addEventListener('click', () => { if (paused) { togglePause(); if (matchMedia('(pointer: fine)').matches) tryLock(); } });
 $('#homeBtn').addEventListener('click', e => { e.stopPropagation(); askHome(); });
