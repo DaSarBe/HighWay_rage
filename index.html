@@ -1348,6 +1348,7 @@ function updateTanks(dt) {
   }
 }
 // ---------- 飛天汽車：升空、空中調整、落地震毀範圍內的車（不通緝）----------
+let jumpCar = null;   // 飛行時的第三人稱車身（第一次使用時才建立）
 const jumpR = () => 14 + 4 * (save.up.jump - 1), jumpCDmax = () => 30 - 5 * (save.up.jump - 1);
 const JUMP_UP = 0.9, JUMP_HANG = 0.9, JUMP_DOWN = 0.8, JUMP_H = 25;
 const jumpMarker = new THREE.Mesh(new THREE.RingGeometry(0.9, 1, 48), new THREE.MeshBasicMaterial({ color: 0xffd23f, transparent: true, opacity: 0.85, side: THREE.DoubleSide, depthWrite: false }));
@@ -1357,7 +1358,8 @@ jumpWave.rotation.x = -Math.PI / 2; jumpWave.visible = false; scene.add(jumpWave
 function useJump() {
   if (!skillOK() || save.up.jump < 1 || G.jump) return;
   if (G.jumpCD > 0) { msg(`飛天汽車冷卻中 ${Math.ceil(G.jumpCD)} 秒`, 'bad'); return; }
-  G.jump = { t: 0, y: 0, tilt: 0 }; msg('飛天汽車！', 'good'); sfx('boss');
+  if (!jumpCar) { jumpCar = buildCar(0x2a5ba0, 'normal'); jumpCar.g.visible = false; scene.add(jumpCar.g); }
+  G.jump = { t: 0, y: 0, tilt: 0, vy: 0, cam: 0 }; msg('飛天汽車！', 'good'); sfx('boss');
 }
 function jumpLand() {
   const R = jumpR(), p = player; let n = 0;
@@ -1372,7 +1374,7 @@ function jumpLand() {
   for (let k = 0; k < 28; k++) { const a = rand(0, 6.283), r = rand(1, R * 0.7); puff(p.x + Math.cos(a) * r, rand(0.3, 2), -(p.s + Math.sin(a) * r), k % 2 ? 0xff8a2a : 0x888888, 2.2); }
   p.shake = 0.7; p.invulT = Math.max(p.invulT, 0.6); sfx('boom'); sfx('crash'); flashCross();
   jumpWave.visible = true; jumpWave.userData = { t: 0, x: p.x, s: p.s, R };
-  G.jumpCD = jumpCDmax(); G.jump = null; jumpMarker.visible = false;
+  G.jumpCD = jumpCDmax(); G.jump = null; jumpMarker.visible = false; if (jumpCar) jumpCar.g.visible = false; cockpit.visible = true;
   msg(n > 0 ? `落地震毀 ${n} 台車` : '平安降落', 'good');
 }
 function updateJump(dt) {
@@ -1384,7 +1386,8 @@ function updateJump(dt) {
   if (T < JUMP_UP) { const k = T / JUMP_UP; J.y = JUMP_H * (1 - (1 - k) * (1 - k)); }
   else if (T < JUMP_UP + JUMP_HANG) J.y = JUMP_H + Math.sin((T - JUMP_UP) * 4) * 0.4;
   else { const k = (T - JUMP_UP - JUMP_HANG) / JUMP_DOWN; J.y = JUMP_H * (1 - k * k); }
-  J.tilt = Math.sin(Math.min(1, J.y / JUMP_H) * Math.PI / 2) * 0.32;
+  J.vy = (J.y - (J.py ?? 0)) / Math.max(dt, 1e-4); J.py = J.y;
+  const hk = clamp(J.y / 7, 0, 1); J.cam = hk * hk * (3 - 2 * hk);   // 越高越拉到車後，落地前自然收回第一人稱
   player.invulT = Math.max(player.invulT, 0.15);
   if (T < JUMP_UP && Math.random() < 0.8) puff(player.x + rand(-0.5, 0.5), Math.max(0.4, J.y - 1), -player.s, 0xffa030, 1.3);
   // 落點預告：依目前車速預估落地位置，玩家可用油門與換線調整
@@ -1687,7 +1690,7 @@ function changeLane(d, auto) {
   if (state !== 'play' || paused) return false;
   const nl = clamp(player.lane + d, 0, 3);
   if (nl === player.lane) { player.pendLane = 0; return false; }
-  if (sideDanger(d)) {   // 旁邊有車：先不切，排隊等它過去（1.2 秒內）
+  if (!G.jump && sideDanger(d)) {   // 旁邊有車（在空中就不用擔心）：先不切，排隊等它過去（1.2 秒內）
     if (!auto) { player.pendLane = d; player.pendT = 1.2; msg('旁邊有車！等它過去再切', 'bad'); }
     return false;
   }
@@ -1751,8 +1754,14 @@ function placeRig() {
   const jy = G.jump ? G.jump.y : 0;
   rig.position.set(p.x - 0.38, 1.18 + jy, -p.s);
   const sh = reduceMotion ? 0 : p.shake;
-  camera.position.set(rand(-sh, sh) * 0.3, rand(-sh, sh) * 0.3 + Math.sin(p.s * 0.9) * 0.004, 0);
-  camera.rotation.order = 'YXZ'; camera.rotation.set(G.jump ? -G.jump.tilt : 0, -p.camYaw, 0);
+  const cb = G.jump ? G.jump.cam : 0;   // 飛行時切到第三人稱：相機拉到車後上方，看得到自己的車
+  camera.position.set(rand(-sh, sh) * 0.3 + cb * 0.38, rand(-sh, sh) * 0.3 + Math.sin(p.s * 0.9) * 0.004 + cb * 3.2, cb * 8.5);
+  camera.rotation.order = 'YXZ'; camera.rotation.set(-cb * 0.2, -p.camYaw * (1 - cb * 0.6), 0);
+  cockpit.visible = holder.visible = cb < 0.6;
+  if (jumpCar) {
+    const jc = jumpCar.g; jc.visible = cb > 0.02;
+    if (jc.visible) { jc.position.set(p.x, jy, -p.s); jc.rotation.set(clamp((G.jump.vy || 0) * 0.012, -0.35, 0.35), 0, -p.steer * 0.04); }
+  }
   p.wheelMesh.rotation.z = -p.steer * 0.6;
 
   // 手持模型
