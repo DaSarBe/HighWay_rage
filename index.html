@@ -342,6 +342,29 @@ button.start:focus-visible { outline: 3px solid var(--amber); outline-offset: 3p
 #intro > .iwait { opacity: 1; }
 #intro.run .iwait { display: none; }
 #app.menu #hud, #app.menu #touch { visibility: hidden; }
+#stageBanner { position: absolute; left: 0; right: 0; top: 28%; text-align: center; font: 900 clamp(34px, 9vw, 72px) var(--font-display); letter-spacing: .12em; color: #fff; text-shadow: 3px 3px 0 #074a2a, 0 0 18px rgba(0,0,0,.5); opacity: 0; pointer-events: none; }
+#stageBanner.show { animation: bannerIn 2.2s ease-out both; }
+@keyframes bannerIn { 0% { opacity: 0; transform: scale(1.4); } 12% { opacity: 1; transform: scale(1); } 75% { opacity: 1; } 100% { opacity: 0; } }
+#camFlash { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; }
+#camFlash.on { animation: camF .35s ease-out; }
+@keyframes camF { 0% { opacity: .95; } 100% { opacity: 0; } }
+.sprog { position: relative; height: 13px; margin-top: 4px; background: rgba(0,0,0,.35); border-radius: 7px; overflow: hidden; min-width: 140px; }
+.sprog i { display: block; height: 100%; width: 0; background: var(--amber); transition: width .25s; }
+.sprog span { position: absolute; inset: 0; text-align: center; font: 700 10px/13px var(--font-num); color: #fff; }
+#ending { position: absolute; inset: 0; z-index: 12; }
+#ending[hidden] { display: none; }
+#endWhite { position: absolute; inset: 0; background: #fff; display: grid; place-items: center; color: #111; font: 900 clamp(34px, 9vw, 76px) var(--font-display); letter-spacing: .12em; animation: eWhite 3.2s both; }
+@keyframes eWhite { 0% { opacity: 0; } 25% { opacity: 1; } 100% { opacity: 1; } }
+#endBlack { position: absolute; inset: 0; background: #000; color: #f3f4ee; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; padding: 24px; box-sizing: border-box; text-align: center; }
+#endBlack[hidden] { display: none; }
+#endBlack .el { margin: 0; font: 700 clamp(18px, 4.6vw, 30px) var(--font-display); letter-spacing: .08em; opacity: 0; animation: eIn 1.4s forwards; animation-delay: calc(.8s + var(--k) * 2.3s); }
+@keyframes eIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+#endCoin { margin-bottom: 12px; font: 700 16px var(--font-num); color: var(--amber); }
+#endBtns { margin-top: 18px; animation: eIn 1s both; }
+#achList .item { grid-template-columns: 1fr auto; }
+#achList .item.done .nm::before { content: '✓ '; color: var(--amber); }
+#achList .item .rw { font: 900 15px var(--font-num); color: var(--amber); white-space: nowrap; }
+#achList .item.done { opacity: .6; }
 #scoreBox { transform: scale(.78) !important; transform-origin: top left; }
 #speedo { scale: .78; transform-origin: left bottom; }
 @media (hover: none) and (pointer: coarse) { #speedo { scale: .8; transform-origin: left top; } }
@@ -364,10 +387,11 @@ button.start:focus-visible { outline: 3px solid var(--amber); outline-offset: 3p
     </div>
     <div id="routeBox" class="sign">
       <div class="shield">1</div>
-      <div><div class="eyebrow" id="kmTxt">國道一號 北上</div><div class="place"><span id="place">高雄</span><span id="nextPl">→ 台南</span></div></div>
+      <div><div class="eyebrow" id="kmTxt">國道 南下</div><div class="place"><span id="place">基隆</span><span id="nextPl">→ 台北</span></div><div class="sprog"><i id="stageBar"></i><span id="stageTxt"></span></div></div>
     </div>
     <div id="policeFlash"></div>
     <div class="sideW" id="sideL">◀ 左側有車</div><div class="sideW" id="sideR">右側有車 ▶</div>
+    <div id="stageBanner"></div><div id="camFlash"></div>
     <div id="centerHud">
       <div id="comboBox" hidden><div class="row"><span class="cn">連殺</span><span id="cN">0</span><span id="cM">×1.0</span></div><div class="bar"><i id="cBar"></i></div></div>
       <div id="stars" hidden></div>
@@ -412,12 +436,13 @@ button.start:focus-visible { outline: 3px solid var(--amber); outline-offset: 3p
       <div class="sub">國道清道夫　第一人稱駕駛</div>
       <div class="rule"></div>
       <div class="howto"><div class="howH">怎麼玩</div><ol>
-        <li><b>目標</b>：在國道上開車，清掉搗亂的<span class="chip s">三寶</span>和<span class="chip c">路隊長</span>，每清一個就得分。</li>
+        <li><b>目標</b>：由北到南開到屏東！清掉搗亂的<span class="chip s">三寶</span>和<span class="chip c">路隊長</span>，每關清夠數量就進下一關。</li>
         <li><b>連殺</b>：連續清除，分數倍率越來越高（最高 ×5）；撞到或誤傷會中斷。</li>
         <li><b>別打路人</b>：打到<span class="chip n">一般車</span>會扣分，還會被通緝，警車會追你。</li>
         <li><b>車況歸零就結束</b>：撿修車包可以回血；Boss 很硬，要輪流換武器。</li>
         <li><b>賺金幣</b>：每局結束，<b>分數 ÷ 5</b> 變成金幣（打倒 Boss 再加 200）。</li>
-        <li><b>變強</b>：到「車庫商店」買武器、改裝車子，還能解鎖四種技能幫你清場。</li>
+        <li><b>小心</b>：高雄、屏東會有大卡車從路邊衝進來，屏東還有逆向車；遇到<b>測速照相機</b>要把時速維持在 90～110，不然大扣分（也可以直接把它打掉）。</li>
+        <li><b>變強</b>：到「車庫商店」買武器、改裝車子，還能解鎖三種技能幫你清場。</li>
       </ol></div>
       <div class="rule"></div>
       <dl class="keys touchOnly">
@@ -435,7 +460,7 @@ button.start:focus-visible { outline: 3px solid var(--amber); outline-offset: 3p
         <dt>↓ / S</dt><dd>煞車</dd>
         <dt>← → / A D</dt><dd>換車道（拿著道具也可以）</dd>
         <dt>滑鼠移動</dt><dd>轉動視角瞄準。點一下畫面會鎖定游標；若鎖不到，改成按住左鍵拖曳</dd>
-        <dt>F / G</dt><dd>空中支援：直升機磁鐵吸走敵人（不含 Boss），冷卻 30 秒。地表最強：三台戰車橫穿高速公路，撞到的車全部毀掉，共 3 次</dd>
+        <dt>F / G</dt><dd>空中支援：直升機磁鐵吸走敵人（不含 Boss），冷卻 30 秒（一開始就有）。地表最強（需在商店解鎖）：三台戰車橫穿高速公路，撞到的車全部毀掉</dd>
         <dt>J</dt><dd>陸航的朋友（需在車庫商店解鎖）：武裝直升機飛來，你改用機鼻視角操控機炮（左鍵／按住「機炮」）與火箭（右鍵或 Space／「火箭」），車子自動直行且不會受傷。打到一般車會大量扣分</dd>
         <dt>H</dt><dd>飛天汽車（需在車庫商店解鎖）：往上噴射升空，落地時震毀範圍內的所有車，不會被通緝；Boss 受 25% 傷害</dd>
         <dt>按住 Tab 或 Q</dt><dd>叫出道具轉盤（時間變慢），移動滑鼠或按 ← → 選擇，放開即裝備</dd>
@@ -453,7 +478,7 @@ button.start:focus-visible { outline: 3px solid var(--amber); outline-offset: 3p
       <div class="credit">音效取自 Kenney 的 CC0 音效包；車輛與戰車 3D 模型取自 Kenney Car Kit、Quaternius（皆為 CC0）；背景音樂與引擎聲為程式合成。</div>
       <div class="coinTag" id="titleCoin"></div>
       <div class="cloudBox" id="cloudBox" hidden><button class="ghost" id="loginBtn">以 Google 登入，保存紀錄</button><span id="cloudInfo"></span><button class="ghost" id="logoutBtn" hidden>登出</button></div>
-      <div class="go"><button class="start" id="startBtn">上路</button><button class="ghost" id="shopBtn1">車庫商店</button><small class="kbOnly">或按 Enter 開始</small></div>
+      <div class="go"><button class="start" id="startBtn">上路</button><button class="ghost" id="shopBtn1">車庫商店</button><button class="ghost" id="achBtn">成就</button><small class="kbOnly">或按 Enter 開始</small></div>
     </div>
   </div>
 
@@ -463,6 +488,25 @@ button.start:focus-visible { outline: 3px solid var(--amber); outline-offset: 3p
       <div class="sub">用清道賺到的金幣買裝備（依序購買）、改造車子</div>
       <div id="shopList"></div>
       <div class="go"><button class="start" id="shopBack">返回</button><small>金幣 = 分數 ÷ 5，加上每隻 Boss 200</small></div>
+    </div>
+  </div>
+
+  <div id="ach" class="overlay" hidden style="z-index:5">
+    <div class="board sign">
+      <div class="shopH"><h1>成就</h1><div class="bal" id="achCount"></div></div>
+      <div class="sub">挑戰自己，解鎖成就拿金幣</div>
+      <div id="achList"></div>
+      <div class="go"><button class="start" id="achBack">返回</button></div>
+    </div>
+  </div>
+
+  <div id="ending" hidden>
+    <div id="endWhite"><div>感謝玩家遊玩</div></div>
+    <div id="endBlack" hidden>
+      <p class="el" style="--k:0">但是三寶的數量沒有因此減少</p>
+      <p class="el" style="--k:1">他們就像蟑螂一樣打也打不完</p>
+      <p class="el" style="--k:2">但總得有人出來解決</p>
+      <div id="endBtns" hidden><div id="endCoin"></div><div class="go"><button class="start" id="againEnd">再來一輪</button><button class="ghost" id="homeEnd">回主畫面</button></div></div>
     </div>
   </div>
 
@@ -617,7 +661,7 @@ const ICONS = {
   shotgun: '<path d="M-31 1 L-13 -3 H29 V1 H-7 L-9 5 H-14 L-31 9 Z" fill="currentColor"/><rect x="-5" y="-8" width="34" height="3.5" fill="currentColor"/>',
 };
 const WEAPONS = [
-  { id: 'foot',    name: '大腳',   sub: '踹飛一般車・撞到敵人秒殺', type: 'kick', rate: 0.7, dmg: 28, price: 0 },
+  { id: 'foot',    name: '大腳',   sub: '踹飛一般車・撞到敵人秒殺', type: 'kick', rate: 0.7, dmg: 28, price: 250 },
   { id: 'egg',     name: '雞蛋',   sub: '投擲・糊窗・下次受傷 ×2', type: 'throw', price: 0, dmg: 12, rate: 0.32, spd: 30 },
   { id: 'pan',     name: '平底鍋', sub: '投擲・敲車窗',       type: 'throw', dmg: 35, rate: 0.5, spd: 30, tag: '鏘！', price: 0 },
   { id: 'axe',     name: '斧頭',   sub: '投擲・重擊',         type: 'throw', dmg: 85, rate: 0.85, spd: 28, tag: '劈開！', price: 450 },
@@ -635,8 +679,9 @@ const UPGRADES = [
   { id: 'heli',   name: '空中支援改裝', max: 3, base: 300, desc: lv => `冷卻 −5 秒（目前 ${30 - 5 * lv} 秒）` },
   { id: 'jump',   name: '飛天汽車', max: 4, costs: [600, 400, 700, 1000], desc: lv => lv === 0 ? '解鎖技能（H）：升空後落地，震毀範圍內所有車' : `落地範圍 ${14 + 4 * (lv - 1)} 公尺・冷卻 ${30 - 5 * (lv - 1)} 秒` + (lv < 4 ? `（下一級：${14 + 4 * lv} 公尺・${30 - 5 * lv} 秒）` : '') },
   { id: 'gun',    name: '陸航的朋友', max: 4, costs: [1200, 800, 1200, 1600], desc: lv => lv === 0 ? '解鎖技能（J）：武裝直升機，機炮＋火箭' : `操控 ${20 + 3 * (lv - 1)} 秒・火箭 ${6 + 2 * (lv - 1)} 發・冷卻 ${60 - 10 * (lv - 1)} 秒` + (lv < 4 ? '（再升一級：+3 秒、+2 發、冷卻 −10 秒）' : '') },
-  { id: 'tank',   name: '戰車車庫', max: 2, base: 500, desc: lv => `地表最強次數 +1（目前 ${3 + lv} 次）` },
+  { id: 'tank',   name: '地表最強', max: 3, costs: [500, 700, 1000], desc: lv => lv === 0 ? '解鎖技能（G）：三台戰車橫穿高速公路，撞到的車全毀' : `每局可用 ${2 + lv} 次` + (lv < 3 ? `（下一級：${3 + lv} 次）` : '') },
 ];
+const tankMax = () => 2 + save.up.tank;
 const upCost = (u, lv) => u.costs ? u.costs[lv] : u.base * (lv + 1);
 // 累計獲得金幣 earned：用來在多裝置合併存檔（金幣 = earned − 已花費）
 function spentOf(s) {
@@ -831,7 +876,7 @@ function updateScenery(ps) {
     const sp = 700, start = Math.floor((ps - 60) / sp);
     gantries.forEach((o, i) => {
       const idx = slotIdx(i, 2, start);
-      if (o.idx !== idx) { o.idx = idx; o.g.position.z = -(idx * sp + 400); o.board.material.map?.dispose(); o.board.material.map = makeSignTex(idx % 2 === 0 ? [regionAt(idx * 700 + 400) + '交流道', '往 ' + regionAt(idx * 700 + 400 + 1500) + ' ↑'] : GANTRY_TEXT[((idx % 5) + 5) % 5]); o.board.material.needsUpdate = true; }
+      if (o.idx !== idx) { o.idx = idx; o.g.position.z = -(idx * sp + 400); o.board.material.map?.dispose(); o.board.material.map = makeSignTex(idx % 2 === 0 ? [regionAt() + '交流道', '往 ' + (STAGES[Math.min(LAST_STAGE, G.stage + 1)]) + ' ↓'] : GANTRY_TEXT[((idx % 5) + 5) % 5]); o.board.material.needsUpdate = true; }
     });
   }
   {
@@ -941,9 +986,9 @@ function drawLabel(car) {
 }
 
 let cars = [];
-const player = { s: 0, x: LANES[2], lane: 2, speed: 25, hp: 100, hurtCD: 0, aim: 0, camYaw: 0, weapon: 0, cooldown: 0, swingT: 0, steer: 0, shake: 0, invulT: 0, runT: 0, scratch: 3, scratchT: 0, pendLane: 0, pendT: 0, prevLane: 2 };
+const player = { s: 0, x: LANES[2], lane: 2, speed: 25, hp: 100, hurtCD: 0, aim: 0, camYaw: 0, weapon: 1, cooldown: 0, swingT: 0, steer: 0, shake: 0, invulT: 0, runT: 0, scratch: 3, scratchT: 0, pendLane: 0, pendT: 0, prevLane: 2 };
 const stats = { score: 0, kS: 0, kC: 0, innocent: 0, shots: 0, maxCombo: 0, boss: 0, cops: 0, kicks: 0, kickHits: 0 };
-const level = () => 1 + Math.floor(player.s / 2500);
+const level = () => 1 + G.stage * 0.55;   // 難度隨關卡由北到南提高（不顯示給玩家）
 
 function laneFree(lane, s, gap) {
   for (const c of cars) if (!c.dead && Math.abs(c.x - LANES[lane]) < 2.2 + (c.hw - 0.95) && Math.abs(c.s - s) < gap + (c.hl - 2.2)) return false;
@@ -991,7 +1036,7 @@ function removeCar(c) {
 
 function leaderOf(c) {
   let best = null, bestDs = Infinity;
-  const consider = (o) => { if (o === c || o.dead || o.magnet || o.fling) return; const ds = o.s - c.s; if (ds > 0 && ds < bestDs && Math.abs(o.x - c.x) < c.hw + (o.hw || 0.95) + 0.1) { bestDs = ds; best = o; } };
+  const consider = (o) => { if (o === c || o.dead || o.magnet || o.fling || o.wrong) return; const ds = o.s - c.s; if (ds > 0 && ds < bestDs && Math.abs(o.x - c.x) < c.hw + (o.hw || 0.95) + 0.1) { bestDs = ds; best = o; } };
   cars.forEach(consider); consider(player);
   return best ? { o: best, gap: bestDs - (c.hl + (best.hl || 2.2) + 0.1) } : null;
 }
@@ -1028,6 +1073,7 @@ function updateCars(dt, t) {
       if (!H || c.my > 8.5) { if (H) H.count++; kill(c, { skill: true }); c.g.visible = false; c.deadT = 99; }
       continue;
     }
+    if (c.wrong) { c.s += c.speed * dt; c.g.position.set(c.x, 0, -c.s); c.g.rotation.y = Math.PI; c.flashT -= dt; c.bodyMat.emissive.setHex(c.flashT > 0 ? 0x888888 : 0); continue; }
     updateBubble(c, dt);
     if (c.pend && (c.pend.t -= dt) <= 0) { const f = c.pend.fn; c.pend = null; f(); }
     if (c.kind !== 'normal' && (c.chatT = (c.chatT ?? rand(4, 9)) - dt) <= 0) {
@@ -1132,7 +1178,7 @@ function updateCars(dt, t) {
   }
   // 車與車之間不重疊
   for (let i = 0; i < cars.length; i++) for (let j = i + 1; j < cars.length; j++) {
-    const a = cars[i], b = cars[j]; if (a.dead || b.dead || a.magnet || b.magnet || a.fling || b.fling) continue;
+    const a = cars[i], b = cars[j]; if (a.dead || b.dead || a.magnet || b.magnet || a.fling || b.fling || a.wrong || b.wrong) continue;
     if (Math.abs(a.x - b.x) < a.hw + b.hw - 0.1 && Math.abs(a.s - b.s) < a.hl + b.hl) {
       const [back, front] = a.s < b.s ? [a, b] : [b, a];
       back.s = front.s - (back.hl + front.hl); back.speed = Math.min(back.speed, front.speed);
@@ -1141,10 +1187,14 @@ function updateCars(dt, t) {
 }
 
 // ---------- 玩法系統：連殺、補給、瓶子、波次、Boss、警車 ----------
-const G = { region: 0, combo: 0, comboT: 0, wanted: 0, wantedT: 0, policeT: 3, nextWave: 1500, waveN: 0, nextBoss: 2500, boss: null, lastLevel: 1, policeNear: false, heli: null, heliCD: 0, tanks: 3 + save.up.tank, tankLock: 0, tankList: [], tankKills: 0, jump: null, jumpCD: 0, gun: null, gunCD: 0 };
+const G = { stage: 0, stageKills: 0, bossDone: false, truckT: 12, wrongT: 8, camNext: 380, camT: 0, truckWarn: null, region: 0, combo: 0, comboT: 0, wanted: 0, wantedT: 0, policeT: 3, nextWave: 1500, waveN: 0, nextBoss: 1e9, boss: null, lastLevel: 1, policeNear: false, heli: null, heliCD: 0, tanks: tankMax(), tankLock: 0, tankList: [], tankKills: 0, jump: null, jumpCD: 0, gun: null, gunCD: 0 };
 const pickups = [], bottles = [];
-const REGIONS = ['高雄', '台南', '嘉義', '雲林', '彰化', '台中', '苗栗', '新竹', '桃園', '新北', '台北', '基隆'];
-const regionAt = s => REGIONS[Math.floor(s / 1500) % REGIONS.length];
+// 關卡：由北到南，每關要清除一定數量的敵人（三寶／路隊長各 1，Boss 5）才會進入下一關
+const STAGES = ['基隆', '台北', '新北', '桃園', '新竹', '苗栗', '台中', '彰化', '雲林', '嘉義', '台南', '高雄', '屏東'];
+const LAST_STAGE = STAGES.length - 1;
+const stageNeed = i => 5 + i;
+const BOSS_STAGES = new Set([3, 6, 9, 12]);
+const regionAt = () => STAGES[G.stage];
 const pick = a => a[Math.floor(Math.random() * a.length)];
 const NAMES = { sanbao: '三寶', captain: '路隊長', police: '警察', boss: '遊覽車路隊長', normal: '路人' };
 const LINES = {
@@ -1217,8 +1267,9 @@ function updateBubble(c, dt) {
 function resetGame() {
   if (G.heli) scene.remove(G.heli.g);
   if (G.gun && G.gun.mesh) scene.remove(G.gun.mesh);
+  trucks.forEach(t => scene.remove(t.g)); trucks.length = 0; cams.forEach(c => scene.remove(c.g)); cams.length = 0;
   G.tankList.forEach(t => scene.remove(t.g));
-  Object.assign(G, { region: 0, combo: 0, comboT: 0, wanted: 0, wantedT: 0, policeT: 3, nextWave: 1500, waveN: 0, nextBoss: 2500, boss: null, lastLevel: 1, policeNear: false, heli: null, heliCD: 0, tanks: 3 + save.up.tank, tankLock: 0, tankList: [], tankKills: 0, jump: null, jumpCD: 0, gun: null, gunCD: 0 });
+  Object.assign(G, { stage: 0, stageKills: 0, bossDone: false, truckT: 12, wrongT: 8, camNext: 380, camT: 0, truckWarn: null, region: 0, combo: 0, comboT: 0, wanted: 0, wantedT: 0, policeT: 3, nextWave: 1500, waveN: 0, nextBoss: 1e9, boss: null, lastLevel: 1, policeNear: false, heli: null, heliCD: 0, tanks: tankMax(), tankLock: 0, tankList: [], tankKills: 0, jump: null, jumpCD: 0, gun: null, gunCD: 0 });
   jumpMarker.visible = false;
   if (gunGroup) { gunGroup.visible = false; } gunRockets.forEach(r => scene.remove(r.m)); gunRockets.length = 0; $('#app').classList.remove('gunning'); $('#gunHud').hidden = true;
   pickups.forEach(p => scene.remove(p.g)); pickups.length = 0;
@@ -1360,7 +1411,7 @@ function buildTank() {
   return g;
 }
 function useTanks() {
-  if (!skillOK() || G.tankLock > 0) return;
+  if (!skillOK() || G.tankLock > 0 || save.up.tank < 1) return;
   if (G.tanks <= 0) { msg('戰車已經用完了', 'bad'); return; }
   G.tanks--; G.tankLock = 6; G.tankKills = 0;
   msg(`地表最強！戰車出動（剩 ${G.tanks} 次）`, 'good'); sfx('boss');
@@ -1375,7 +1426,7 @@ function useTanks() {
 function updateTanks(dt) {
   for (let i = G.tankList.length - 1; i >= 0; i--) {
     const t = G.tankList[i];
-    t.x += t.dir * 9 * dt; t.s += t.vs * dt; t.g.position.set(t.x, 0, -t.s);
+    t.x += t.dir * 9 * dt; t.s += t.vs * dt; t.g.position.set(t.x, 0, -t.s); camsNear(t.x, t.s, 3.5);
     if (Math.random() < 0.3) puff(t.x - t.dir * 3.6, 0.6, -t.s, 0x777777, 0.7);
     for (const c of cars) {
       if (c.dead || c.magnet || t.hit.has(c)) continue;
@@ -1406,7 +1457,7 @@ function useJump() {
   G.jump = { t: 0, y: 0, tilt: 0, vy: 0, cam: 0 }; msg('飛天汽車！', 'good'); sfx('boss');
 }
 function jumpLand() {
-  const R = jumpR(), p = player; let n = 0;
+  const R = jumpR(), p = player; let n = 0; camsNear(p.x, p.s, R);
   for (const c of cars) {
     if (c.dead || c.magnet || c.fling) continue;
     if (Math.hypot(c.x - p.x, c.s - p.s) > R + c.hl) continue;
@@ -1418,6 +1469,7 @@ function jumpLand() {
   for (let k = 0; k < 28; k++) { const a = rand(0, 6.283), r = rand(1, R * 0.7); puff(p.x + Math.cos(a) * r, rand(0.3, 2), -(p.s + Math.sin(a) * r), k % 2 ? 0xff8a2a : 0x888888, 2.2); }
   p.shake = 0.7; p.invulT = Math.max(p.invulT, 0.6); sfx('boom'); sfx('crash'); flashCross();
   jumpWave.visible = true; jumpWave.userData = { t: 0, x: p.x, s: p.s, R };
+  prog.sky = Math.max(prog.sky, n); achCheck();
   G.jumpCD = jumpCDmax(); G.jump = null; jumpMarker.visible = false; if (jumpCar) jumpCar.g.visible = false; cockpit.visible = true;
   msg(n > 0 ? `落地震毀 ${n} 台車` : '平安降落', 'good');
 }
@@ -1473,7 +1525,7 @@ function gunHit(c, amt, pen = true) {
     amt = Math.min(amt, room); if (U) U.bossDmg += amt;
   }
   c.hp -= amt; c.flashT = 0.08; if (c.label) drawLabel(c);
-  if (c.kind === 'normal' && pen && !c.gunPen) { c.gunPen = true; addScore(-GUN_PEN); breakCombo(); msg(`誤傷無辜 −${GUN_PEN}`, 'bad'); }
+  if (c.kind === 'normal' && pen && !c.gunPen && !c.wrong) { c.gunPen = true; addScore(-GUN_PEN); breakCombo(); msg(`誤傷無辜 −${GUN_PEN}`, 'bad'); }
   if (c.kind === 'boss' && !c.said50 && c.hp < c.maxHp * 0.5) { c.said50 = true; say(c, '你激怒我了！', 2.6, true); }
   if (c.hp <= 0) kill(c, { skill: true });
 }
@@ -1485,7 +1537,7 @@ function gunAimPoint() {
 }
 const gunMuzzle = () => new THREE.Vector3(G.gun.pos.x + 0.9, G.gun.pos.y - 1.6, G.gun.pos.z - 2.5);
 function gunFire() {
-  const U = G.gun, P = gunAimPoint(); U.shots++;
+  const U = G.gun, P = gunAimPoint(); U.shots++; camsNear(P.x, P.s, 2.2);
   tracer(gunMuzzle(), new THREE.Vector3(P.x, 0.6, -P.s), 0xffe08a);
   let best = null, bd = Infinity;
   for (const c of cars) {
@@ -1511,7 +1563,7 @@ function gunRocket() {
   U.rockets--; U.rockT = 1.5; const P = gunAimPoint(); launchRocket(gunMuzzle().add(new THREE.Vector3(1.3, 0, 0)), P.x, P.s, true);
 }
 function rocketBoom(x, s, pen) {
-  const R = 8;
+  const R = 8; camsNear(x, s, R);
   for (const c of cars) {
     if (c.dead || c.magnet) continue;
     if (Math.hypot(c.x - x, c.s - s) < R + c.hl * 0.5) gunHit(c, 150, pen);
@@ -1574,19 +1626,198 @@ for (const [id, fn] of [['skHeli', () => useHeli()], ['skTank', () => useTanks()
   el.addEventListener('click', e => e.preventDefault());
 }
 
+// ---------- 成就（解鎖旗標存在 save.own，會跟著雲端存檔；累計數字存在本機） ----------
+const PROG_KEY = 'rck-prog';
+const prog = { kills: 0, boss: 0, camOK: 0, camKill: 0, wrong: 0, clears: 0, maxStage: 0, sky: 0 };
+try { Object.assign(prog, JSON.parse(localStorage.getItem(PROG_KEY) || '{}')); } catch (_) {}
+let progJson = '';
+const saveProg = () => { const j = JSON.stringify(prog); if (j === progJson) return; progJson = j; try { localStorage.setItem(PROG_KEY, j); } catch (_) {} };
+const ACH = [
+  { id: 'first', name: '初次清道', desc: '擊殺第一隻敵人', r: 50, v: () => prog.kills, g: 1, cum: 1 },
+  { id: 'k30', name: '小有名氣', desc: '累計擊殺 30 隻敵人', r: 150, v: () => prog.kills, g: 30, cum: 1 },
+  { id: 'k150', name: '清道夫', desc: '累計擊殺 150 隻敵人', r: 400, v: () => prog.kills, g: 150, cum: 1 },
+  { id: 'k600', name: '蟑螂剋星', desc: '累計擊殺 600 隻敵人', r: 1000, v: () => prog.kills, g: 600, cum: 1 },
+  { id: 'combo10', name: '連殺高手', desc: '單局連殺達 10', r: 200, v: () => stats.maxCombo, g: 10 },
+  { id: 'mult5', name: '倍率滿點', desc: '單局連殺倍率達 ×5', r: 300, v: () => stats.maxCombo, g: 9 },
+  { id: 'clean', name: '守法公民', desc: '單局擊殺 25 隻敵人，而且沒有誤傷路人', r: 300, v: () => (stats.innocent === 0 ? stats.kS + stats.kC : 0), g: 25 },
+  { id: 'boss1', name: 'Boss 獵人', desc: '擊破 1 隻 Boss', r: 300, v: () => prog.boss, g: 1, cum: 1 },
+  { id: 'boss5', name: '遊覽車殺手', desc: '累計擊破 5 隻 Boss', r: 800, v: () => prog.boss, g: 5, cum: 1 },
+  { id: 'cam5', name: '測速老手', desc: '累計安全通過 5 台測速照相機', r: 300, v: () => prog.camOK, g: 5, cum: 1 },
+  { id: 'camk3', name: '為民除害', desc: '摧毀 3 台測速照相機', r: 300, v: () => prog.camKill, g: 3, cum: 1 },
+  { id: 'wrong5', name: '逆向剋星', desc: '摧毀 5 台逆向車', r: 400, v: () => prog.wrong, g: 5, cum: 1 },
+  { id: 'sky5', name: '天降正義', desc: '飛天汽車一次落地震毀 5 台車', r: 300, v: () => prog.sky, g: 5, cum: 1 },
+  { id: 'speed', name: '極速狂飆', desc: '時速達到 150 km/h', r: 150, v: () => Math.round(player.speed * 3.6), g: 150 },
+  { id: 's10k', name: '萬分達人', desc: '單局拿到 10,000 分', r: 300, v: () => stats.score, g: 10000 },
+  { id: 's50k', name: '五萬傳說', desc: '單局拿到 50,000 分', r: 1000, v: () => stats.score, g: 50000 },
+  { id: 'south', name: '一路向南', desc: '抵達高雄', r: 500, v: () => prog.maxStage, g: 11, cum: 1 },
+  { id: 'clear', name: '屏東終點', desc: '通關屏東', r: 1500, v: () => prog.clears, g: 1, cum: 1 },
+];
+const achDone = id => !!save.own['a_' + id];
+function achCheck() {
+  let any = false;
+  for (const a of ACH) {
+    if (achDone(a.id) || a.v() < a.g) continue;
+    save.own['a_' + a.id] = 1; save.coins += a.r; save.earned += a.r; any = true;
+    msg(`成就解鎖：${a.name}（+${a.r} 金幣）`, 'amber'); sfx('coin');
+  }
+  if (any) { persist(); refreshTitleCoin(); }
+  saveProg();
+}
+function renderAch() {
+  const done = ACH.filter(a => achDone(a.id)).length;
+  $('#achCount').textContent = `${done} / ${ACH.length}`;
+  $('#achList').innerHTML = ACH.map(a => {
+    const d = achDone(a.id), pr = a.cum && !d ? `（${Math.min(a.v(), a.g)} / ${a.g}）` : '';
+    return `<div class="item u ${d ? 'done' : ''}"><div><div class="nm">${a.name}</div><div class="ds">${a.desc}${pr}</div></div><div class="rw">+${a.r}</div></div>`;
+  }).join('');
+}
+$('#achBtn').addEventListener('click', () => { renderAch(); $('#title').hidden = true; $('#ach').hidden = false; });
+$('#achBack').addEventListener('click', () => { $('#ach').hidden = true; $('#title').hidden = false; });
+
+// ---------- 關卡推進與結局 ----------
+function countKill(c) {
+  if (c.kind === 'sanbao' || c.kind === 'captain') { G.stageKills++; prog.kills++; }
+  else if (c.kind === 'boss') { G.stageKills += 5; prog.kills++; prog.boss++; }
+  else return;
+  achCheck();
+}
+function banner(t) { const b = $('#stageBanner'); b.textContent = t; b.classList.remove('show'); void b.offsetWidth; b.classList.add('show'); }
+function nextStage() {
+  if (G.stage >= LAST_STAGE) { finishGame(); return; }
+  G.stage++; G.stageKills = 0; G.bossDone = false; prog.maxStage = Math.max(prog.maxStage, G.stage);
+  player.hp = Math.min(PMAX, player.hp + 15);
+  banner(`進入 ${STAGES[G.stage]}`); msg(`進入 ${STAGES[G.stage]}`, 'good'); sfx('pickup');
+  if (G.stage === 11) { G.truckT = 7; msg('高雄：小心路邊衝出來的大卡車！', 'bad'); }
+  if (G.stage === LAST_STAGE) { G.truckT = 7; G.wrongT = 9; msg('屏東：大卡車與逆向車來襲！', 'bad'); }
+  achCheck();
+}
+let endTimers = [];
+function finishGame() {
+  if (state !== 'play') return;
+  state = 'end'; paused = false; wheelOpen = false; wheelEl.hidden = true;
+  if (document.pointerLockElement) document.exitPointerLock();
+  $('#app').classList.remove('gunning'); $('#gunHud').hidden = true;
+  prog.clears++; achCheck();
+  const { earned } = settle();
+  $('#endCoin').textContent = `本輪獲得金幣 +${earned.toLocaleString()}（共 ${save.coins.toLocaleString()}）`;
+  const e = $('#ending'); e.hidden = false;
+  $('#endWhite').hidden = false; $('#endBlack').hidden = true; $('#endBtns').hidden = true;
+  // 重播動畫：換掉節點
+  const eb = $('#endBlack'), cl = eb.cloneNode(true); eb.replaceWith(cl);
+  $('#againEnd').addEventListener('click', () => { closeEnding(); startGame(); });
+  $('#homeEnd').addEventListener('click', () => { closeEnding(); state = 'title'; $('#title').hidden = false; refreshTitleCoin(); });
+  endTimers.forEach(clearTimeout);
+  endTimers = [setTimeout(() => { $('#endWhite').hidden = true; $('#endBlack').hidden = false; }, 3200), setTimeout(() => { $('#endBtns').hidden = false; }, 3200 + 8200)];
+}
+function closeEnding() { endTimers.forEach(clearTimeout); $('#ending').hidden = true; }
+
+// ---------- 高雄、屏東：路邊衝進來的大卡車 ----------
+const trucks = [];
+const truckGeos = { cab: new THREE.BoxGeometry(2.7, 2.6, 2.6), box: new THREE.BoxGeometry(2.9, 3.3, 7.2), win: new THREE.BoxGeometry(2.3, 0.9, 0.1), stripe: new THREE.BoxGeometry(2.95, 0.5, 7.25) };
+const truckMats = [0xc9322a, 0x2a4f7a, 0xe0a82b].map(c => new THREE.MeshLambertMaterial({ color: c }));
+const truckWhite = new THREE.MeshLambertMaterial({ color: 0xe8e8e4 });
+function buildTruck() {
+  const g = new THREE.Group(), cm = truckMats[Math.floor(Math.random() * truckMats.length)];
+  const cab = new THREE.Mesh(truckGeos.cab, cm); cab.position.set(0, 1.9, -4.4); g.add(cab);
+  const win = new THREE.Mesh(truckGeos.win, glassMat); win.position.set(0, 2.45, -5.72); g.add(win);
+  const box = new THREE.Mesh(truckGeos.box, truckWhite); box.position.set(0, 2.45, 0.4); g.add(box);
+  const stripe = new THREE.Mesh(truckGeos.stripe, cm); stripe.position.set(0, 1.5, 0.4); g.add(stripe);
+  for (const x of [-1.3, 1.3]) for (const z of [-4.4, -0.6, 2.2]) { const w = new THREE.Mesh(wheelGeo, wheelMat); w.scale.set(1.3, 1.3, 1.3); w.position.set(x, 0.45, z); g.add(w); }
+  return g;
+}
+function spawnTruck() {
+  const side = Math.random() < 0.5 ? -1 : 1, g = buildTruck();
+  const t = { g, side, x: side * 17, s: player.s + rand(70, 105), vs: Math.max(16, player.speed * 0.85), vx: -side * 9.5, wait: 1.5, hit: false };
+  g.position.set(t.x, 0, -t.s); g.rotation.y = Math.atan2(-t.vx, t.vs); scene.add(g); trucks.push(t);
+  G.truckWarn = { side, t: 1.6 }; msg(`${side < 0 ? '左' : '右'}側有大卡車衝進來！`, 'bad'); sfx('hitbad');
+}
+function updateTrucks(dt) {
+  if (G.truckWarn && (G.truckWarn.t -= dt) <= 0) G.truckWarn = null;
+  for (let i = trucks.length - 1; i >= 0; i--) {
+    const t = trucks[i]; t.s += t.vs * dt; if (t.wait > 0) t.wait -= dt; else t.x += t.vx * dt;
+    t.g.position.set(t.x, 0, -t.s);
+    if (!t.hit && !G.jump && Math.abs(t.x - player.x) < 2.3 && Math.abs(t.s - player.s) < 7) {
+      t.hit = true; hurt(28, '被大卡車撞到！'); player.speed = Math.max(SPEED_FLOOR, player.speed * 0.65); player.shake = Math.max(player.shake, 0.5);
+    }
+    if ((t.wait <= 0 && t.x * t.side < -17.5) || t.s < player.s - 70) { scene.remove(t.g); trucks.splice(i, 1); }
+  }
+}
+// ---------- 屏東：逆向車 ----------
+function spawnWrong() {
+  const lane = Math.floor(rand(0, 4)), s = player.s + 320;
+  if (!laneFree(lane, s, 30)) return;
+  const v = rand(20, 27), m = buildCar(pick(NORMAL_COLORS), 'normal');
+  mkCar(m, 'normal', { lane, targetLane: lane, x: LANES[lane], s, speed: -v, cruise: -v, hp: 60, wrong: true });
+  msg('小心！逆向車衝過來了！', 'bad'); sfx('hitbad');
+}
+// ---------- 固定測速照相機：時速 90～110 才安全；可以摧毀（不加分不扣分，大家會稱讚你） ----------
+const cams = [], PRAISE = ['幹得好！', '英雄！', '終於有人拆了它！', '太帥了！', '這下可以放心飆了！', '謝謝你！', '大快人心！'];
+const camGeos = { pole: new THREE.BoxGeometry(0.28, 6.2, 0.28), arm: new THREE.BoxGeometry(2.6, 0.22, 0.22), head: new THREE.BoxGeometry(1.2, 0.9, 1.0), lens: new THREE.CylinderGeometry(0.28, 0.28, 0.2, 10), sign: new THREE.PlaneGeometry(1.8, 0.9) };
+camGeos.lens.rotateX(Math.PI / 2);
+const camMats = { pole: new THREE.MeshLambertMaterial({ color: 0x9aa0a4 }), head: new THREE.MeshLambertMaterial({ color: 0x2e3742 }), lens: new THREE.MeshBasicMaterial({ color: 0xff4040 }) };
+const camSignMat = new THREE.MeshBasicMaterial({ map: canvasTex(256, 128, (g, w, h) => {
+  g.fillStyle = '#ffd23f'; g.fillRect(0, 0, w, h); g.strokeStyle = '#111'; g.lineWidth = 8; g.strokeRect(6, 6, w - 12, h - 12);
+  g.fillStyle = '#111'; g.textAlign = 'center'; g.font = '900 40px "Noto Sans TC", sans-serif'; g.fillText('測速照相', w / 2, 56); g.font = '700 38px "Chakra Petch", sans-serif'; g.fillText('90-110', w / 2, 106);
+}) });
+function buildCam(side) {
+  const g = new THREE.Group(), add = (geo, mat, x, y, z) => { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); g.add(m); return m; };
+  add(camGeos.pole, camMats.pole, 0, 3.1, 0); add(camGeos.arm, camMats.pole, -side * 1.3, 6.1, 0);
+  add(camGeos.head, camMats.head, -side * 2.6, 5.9, 0); add(camGeos.lens, camMats.lens, -side * 2.6, 5.9, 0.55);
+  add(camGeos.sign, camSignMat, 0, 4.2, 0.2);
+  return g;
+}
+function spawnCam() {
+  const side = Math.random() < 0.5 ? -1 : 1, g = buildCam(side), c = { g, s: player.s + 340, x: side * 10.7, side, done: false, dead: false, warned: false };
+  g.position.set(c.x, 0, -c.s); scene.add(g); cams.push(c);
+}
+function destroyCam(c) {
+  if (c.dead) return; c.dead = true; c.g.visible = false;
+  for (let k = 0; k < 14; k++) puff(c.x - c.side * rand(0, 3), rand(3, 6.5), -c.s + rand(-1, 1), k % 2 ? 0xff8a2a : 0x555555, 1.6);
+  sfx('boom'); prog.camKill++; msg('摧毀測速照相機！大家都在稱讚你', 'good');
+  const near = cars.filter(o => !o.dead && !o.magnet && Math.abs(o.s - player.s) < 200).sort((a, b) => Math.abs(a.s - player.s) - Math.abs(b.s - player.s)).slice(0, 5);
+  near.forEach((o, i) => setTimeout(() => say(o, pick(PRAISE), 2.4, true), 250 + i * 260));
+  achCheck();
+}
+function camsNear(x, s, r) { for (const c of cams) if (!c.dead && Math.hypot(c.x - x, c.s - s) < r) destroyCam(c); }
+function camsAlongRay(ox, os, a, range, rad) {
+  for (const c of cams) {
+    if (c.dead) continue;
+    const dx = c.x - ox, ds = c.s - os, along = dx * Math.sin(a) + ds * Math.cos(a), perp = Math.abs(dx * Math.cos(a) - ds * Math.sin(a));
+    if (along > 0 && along < range && perp < rad) destroyCam(c);
+  }
+}
+function updateCams(dt) {
+  if (player.s > G.camNext) { spawnCam(); G.camNext = player.s + rand(650, 950); }
+  for (let i = cams.length - 1; i >= 0; i--) {
+    const c = cams[i];
+    if (!c.dead && !c.warned && c.s - player.s < 130) { c.warned = true; msg('前方測速照相：請維持時速 90～110', 'amber'); }
+    if (!c.dead && !c.done && player.s >= c.s) {
+      c.done = true; const kmh = Math.round(player.speed * 3.6);
+      if (G.jump) { /* 在空中，拍不到 */ }
+      else if (kmh < 90 || kmh > 110) {
+        addScore(-800); breakCombo(); msg(`被測速照相！ −800（時速 ${kmh}）`, 'bad'); sfx('crash');
+        const f = $('#camFlash'); f.classList.remove('on'); void f.offsetWidth; f.classList.add('on');
+      } else { prog.camOK++; msg('測速通過', 'good'); achCheck(); }
+    }
+    if (c.s < player.s - 80) { scene.remove(c.g); cams.splice(i, 1); }
+  }
+}
+
 function updateGame(dt, t) {
   if (tutOn) tutTick();
   // 連殺倒數
   if (G.combo > 0 && (G.comboT -= dt) <= 0) { G.combo = 0; }
-  // 地區（由南至北）
-  const ri = Math.floor(player.s / 1500);
-  if (ri !== G.region) { G.region = ri; msg(ri % REGIONS.length === 0 ? '回到高雄，再跑一趟！' : `進入 ${regionAt(player.s)}`, 'good'); }
-  // 等級提升
-  const L = level(); if (L !== G.lastLevel) { G.lastLevel = L; msg(`難度提升 LV ${L}`, 'amber'); }
+  // 關卡：擊殺足夠敵人就進入下一關
+  if (G.stageKills >= stageNeed(G.stage)) nextStage();
+  if ((G.achT = (G.achT || 0) - dt) <= 0) { G.achT = 0.5; achCheck(); }
   // 波次與 Boss
-  if (player.s > G.nextWave) { G.nextWave += 1500; if (!G.boss && Math.abs(G.nextBoss - player.s) > 400) triggerWave(); }
-  if (!G.boss && player.s > G.nextBoss) spawnBoss();
+  if (player.s > G.nextWave) { G.nextWave += 1500; if (!G.boss) triggerWave(); }
+  if (!G.boss && BOSS_STAGES.has(G.stage) && !G.bossDone && G.stageKills >= 2) { G.bossDone = true; spawnBoss(); }
   if (G.boss && (G.boss.dead || !cars.includes(G.boss))) G.boss = null;
+  // 高雄、屏東：大卡車從路邊衝進來；屏東還有逆向車
+  if (G.stage >= 11) { if ((G.truckT -= dt) <= 0) { G.truckT = rand(11, 19) / (G.stage === LAST_STAGE ? 1.3 : 1); spawnTruck(); } }
+  if (G.stage === LAST_STAGE) { if ((G.wrongT -= dt) <= 0) { G.wrongT = rand(9, 16); spawnWrong(); } }
+  updateTrucks(dt); updateCams(dt);
   // 通緝與警車
   if (G.wanted > 0 && (G.wantedT -= dt) <= 0) { G.wanted--; G.wantedT = 14; msg(G.wanted > 0 ? '通緝降級 ' + '★'.repeat(G.wanted) : '警方放棄追緝', 'good'); }
   const active = cars.filter(c => c.kind === 'police' && !c.dead);
@@ -1714,12 +1945,13 @@ function damage(c, amount, tag) {
     if (c.kind === 'boss' && !c.said50 && c.hp < c.maxHp * 0.5) { c.said50 = true; say(c, '你激怒我了！', 2.6, true); }
     else if (Math.random() < 0.35) say(c, pick(LINES[c.kind].hit), 1.8);
   }
-  if (c.kind === 'normal' && !c.warned) { c.warned = true; addScore(-50); breakCombo(); addWanted(G.wanted === 0 ? 1 : 0); msg('別打無辜路人！ −50', 'bad'); }
+  if (c.kind === 'normal' && !c.warned && !c.wrong) { c.warned = true; addScore(-50); breakCombo(); addWanted(G.wanted === 0 ? 1 : 0); msg('別打無辜路人！ −50', 'bad'); }
   if (c.hp <= 0) kill(c);
   else if (tag && c.kind !== 'normal') msg(tag, 'amber');
 }
 function kill(c, opts = {}) {
   c.dead = true; c.deadT = 0;
+  if (c.wrong) prog.wrong++; else countKill(c);
   c.spin = rand(3, 6) * (Math.random() < .5 ? -1 : 1);
   c.vx = (c.x < 0 ? -1 : 1) * rand(3, 6);
   c.blinkers.forEach(b => b.visible = false); c.bodyMat.emissive.setHex(0); c.bodyMat.color.multiplyScalar(0.45);
@@ -1744,13 +1976,13 @@ function kill(c, opts = {}) {
     stats.boss++; const m = registerKill(); const pts = Math.round((2000 + bonus * 3) * m); addScore(pts);
     msg(`Boss 擊破！ +${pts}`, 'good'); G.boss = null; G.nextBoss = player.s + 4000; player.shake = 0.5;
     for (const l of [0, 2, 3]) dropKit(LANES[l], dropS + rand(0, 30));
-    if (G.tanks < 3 + save.up.tank && Math.random() < 0.7) { G.tanks++; msg('獲得戰車補給 +1（地表最強）', 'good'); }
+    if (G.tanks < tankMax() && Math.random() < 0.7) { G.tanks++; msg('獲得戰車補給 +1（地表最強）', 'good'); }
     if (G.heliCD > 0 && Math.random() < 0.5) { G.heliCD = 0; msg('空中支援冷卻完成', 'good'); }
   } else if (c.kind === 'police') {
     if (opts.skill) { addScore(100); msg('清除警車 +100', 'amber'); }
     else { stats.cops++; addScore(-300); breakCombo(); addWanted(1); msg('襲警！ −300', 'bad'); }
   } else if (opts.jump) { addScore(50); }
-  else if (!opts.skill) { stats.innocent++; addScore(-200); breakCombo(); addWanted(1); msg('誤傷無辜 −200', 'bad'); }
+  else if (!opts.skill && !c.wrong) { stats.innocent++; addScore(-200); breakCombo(); addWanted(1); msg('誤傷無辜 −200', 'bad'); }
 }
 
 function kickCar(c) {
@@ -1773,6 +2005,7 @@ function attack() {
   if (player.cooldown > 0) return;
   player.cooldown = w.rate; stats.shots++; tut.shot++;
   const ox = player.x - 0.38 + 0.4, os = player.s;
+  camsAlongRay(ox, os, player.aim, w.type === 'kick' ? 8 : w.type === 'throw' ? 45 : w.range, w.type === 'gun' ? 1.2 : 1.6);
   if (w.type === 'gun') {
     const model = weaponModels[w.id]; model.updateMatrixWorld(true);
     const from = new THREE.Vector3(0, 0.02, model.userData.muzzleZ).applyMatrix4(model.matrixWorld);
@@ -1898,6 +2131,7 @@ function updatePlayer(dt) {
     const ddx = c.x - p.x, ds = c.s - p.s;
     const sw = 0.85 + c.hw, sl = 2.2 + c.hl;
     if (Math.abs(ddx) >= sw || Math.abs(ds) >= sl) continue;
+    if (c.wrong) { hurt(32, '逆向車對撞！'); kill(c, { skill: true }); p.speed = Math.max(SPEED_FLOOR, p.speed * 0.6); p.shake = 0.5; continue; }
     const side = Math.sign(ddx) || 1;
     if (Math.abs(ds) < sl - 1.4 && Math.abs(ddx) > 0.7) {
       const movingToward = Math.sign(LANES[p.lane] - p.x) === side && Math.abs(LANES[p.lane] - p.x) > 0.2;
@@ -1930,7 +2164,7 @@ function placeRig() {
     const U = G.gun; rig.position.copy(U.pos); camera.position.set(rand(-sh, sh) * 0.3, rand(-sh, sh) * 0.3, 0); camera.rotation.set(U.pitch, -U.yaw, 0);
     cockpit.visible = holder.visible = false;
   }
-  const fov = gunCtl() ? 55 : 72; if (camera.fov !== fov) { camera.fov = fov; camera.updateProjectionMatrix(); }
+  const fov = gunCtl() ? 55 : (innerWidth / innerHeight < 1 ? 88 : 72); if (camera.fov !== fov) { camera.fov = fov; camera.updateProjectionMatrix(); }
   if (jumpCar) {
     const jc = jumpCar.g; jc.visible = cb > 0.02;
     if (jc.visible) { jc.position.set(p.x, jy, -p.s); jc.rotation.set(clamp((G.jump.vy || 0) * 0.012, -0.35, 0.35), 0, -p.steer * 0.04); }
@@ -1965,19 +2199,22 @@ let tauntCD = 0;
 function updateHud(dt) {
   $('#app').classList.toggle('menu', state !== 'play');
   const driving = state === 'play' && !paused;
-  $('#sideL').classList.toggle('on', driving && player.lane > 0 && sideDanger(-1));
-  $('#sideR').classList.toggle('on', driving && player.lane < 3 && sideDanger(1));
+  $('#sideL').classList.toggle('on', driving && ((player.lane > 0 && sideDanger(-1)) || (G.truckWarn && G.truckWarn.side < 0)));
+  $('#sideR').classList.toggle('on', driving && ((player.lane < 3 && sideDanger(1)) || (G.truckWarn && G.truckWarn.side > 0)));
   const sp = $('#scrape').children; for (let k = 0; k < 3; k++) sp[k + 1].classList.toggle('on', player.scratch > k);
   $('#invRow').hidden = !(player.invulT > 0); if (player.invulT > 0) setText('invT', Math.ceil(player.invulT));
   const kmh = Math.round(player.speed * 3.6);
   setText('spd', kmh); setText('score', stats.score.toLocaleString()); setText('kS', stats.kS); setText('kC', stats.kC);
-  setText('kmTxt', `國道一號 北上 ・ ${(KM0 + player.s / 1000).toFixed(1)}K`);
-  setText('lvTxt', `清道績效 ・ LV ${level()}`);
-  setText('place', regionAt(player.s)); setText('nextPl', '→ ' + regionAt(player.s + 1500));
+  setText('kmTxt', `國道 南下 ・ ${(KM0 + player.s / 1000).toFixed(1)}K`);
+  setText('lvTxt', '清道績效');
+  setText('place', STAGES[G.stage]); setText('nextPl', G.stage < LAST_STAGE ? '→ ' + STAGES[G.stage + 1] : '→ 終點');
+  setText('stageTxt', `清道 ${Math.min(G.stageKills, stageNeed(G.stage))} / ${stageNeed(G.stage)}`);
+  $('#stageBar').style.width = Math.min(100, G.stageKills / stageNeed(G.stage) * 100) + '%';
   const cb = $('#comboBox'); cb.hidden = G.combo < 2;
   if (G.combo >= 2) { setText('cN', G.combo); setText('cM', '×' + comboMult().toFixed(1)); $('#cBar').style.width = Math.max(0, G.comboT / 6 * 100) + '%'; }
   const st = $('#stars'); st.hidden = G.wanted === 0; if (G.wanted) setText('stars', '★'.repeat(G.wanted) + '☆'.repeat(3 - G.wanted));
   $('#policeFlash').classList.toggle('on', G.policeNear && G.wanted > 0 && state === 'play');
+  $('#skTank').hidden = save.up.tank < 1;
   const hs = $('#skHeli'), ts = $('#skTank'), hReady = G.heliCD <= 0 && !G.heli, tReady = G.tanks > 0 && G.tankLock <= 0;
   hs.classList.toggle('off', !hReady); hs.classList.toggle('run', !!G.heli); ts.classList.toggle('off', !tReady); ts.classList.toggle('run', G.tankList.length > 0);
   setText('skHeliSub', G.heli ? '出動中' : G.heliCD > 0 ? Math.ceil(G.heliCD) + ' 秒' : '就緒');
@@ -2101,6 +2338,7 @@ addEventListener('keydown', e => {
   if (!first || e.repeat) return;
   if (introOn) { if (introRun) endIntro(); else startIntro(); return; }
   if (!$('#shop').hidden) { if (e.code === 'Escape') closeShop(); return; }
+  if (state === 'end') return;
   if (state !== 'play') { if (e.code === 'Enter' || (e.code === 'Space' && state === 'title')) startGame(); return; }
   if (!$('#homeConfirm').hidden) { if (e.code === 'Escape' || e.code === 'KeyP') closeHomeAsk(); return; }
   if (e.code === 'Escape' || e.code === 'KeyP') { if (performance.now() - lastLockPause < 250) return; togglePause(); return; }
@@ -2402,7 +2640,7 @@ function resetWorld() {
   applyUpgrades();
   cars.forEach(removeCar); cars = [];
   eggs.forEach(e => scene.remove(e.m)); eggs.length = 0;
-  Object.assign(player, { s: 0, x: LANES[2], lane: 2, prevLane: 2, speed: 25, hp: PMAX, hurtCD: 0, aim: 0, camYaw: 0, weapon: 0, cooldown: 0, swingT: 0, steer: 0, shake: 0, invulT: 0, runT: 0, scratch: 3, scratchT: 0, pendLane: 0, pendT: 0 });
+  Object.assign(player, { s: 0, x: LANES[2], lane: 2, prevLane: 2, speed: 25, hp: PMAX, hurtCD: 0, aim: 0, camYaw: 0, weapon: 1, cooldown: 0, swingT: 0, steer: 0, shake: 0, invulT: 0, runT: 0, scratch: 3, scratchT: 0, pendLane: 0, pendT: 0 });
   Object.assign(stats, { score: 0, kS: 0, kC: 0, innocent: 0, shots: 0, maxCombo: 0, boss: 0, cops: 0, kicks: 0, kickHits: 0 });
   resetGame(); $('#speech').hidden = true; spUntil = 0;
   lastHud = {};
@@ -2414,7 +2652,7 @@ function startGame() {
   if (matchMedia('(pointer: fine)').matches) tryLock();
   resetWorld(); state = 'play'; paused = false; musicStep = 0; musicNext = 0;
   player.invulT = 2.5;
-  $('#title').hidden = true; $('#over').hidden = true; $('#pause').hidden = true;
+  $('#title').hidden = true; $('#over').hidden = true; $('#pause').hidden = true; closeEnding();
   msg('上路！開局無敵 2.5 秒', 'good');
 }
 function togglePause() {
@@ -2581,7 +2819,7 @@ function updateSpawns(dt) {
     if ((!(c.keep && !c.retire) && (c.s < player.s - 110 || c.s > player.s + 520)) || (c.keep && c.retire && c.s < player.s - 110) || (c.dead && c.deadT > 5)) { removeCar(c); cars.splice(i, 1); }
   }
   const target = Math.round(Math.min(22, 11 + level()) * (0.55 + 0.45 * calm()));
-  const alive = cars.filter(c => !c.dead && !c.keep).length;
+  const alive = cars.filter(c => !c.dead && !c.keep && !c.wrong).length;
   if (alive < target) {
     if (player.speed < 22 && Math.random() < 0.35) spawnCar(false); else spawnCar(true);
   }
