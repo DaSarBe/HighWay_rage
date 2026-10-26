@@ -106,11 +106,13 @@ body { margin: 0; background: #0d1310; color: var(--paper); font-family: var(--f
 .skill.off { opacity: .55; border-color: rgba(243,244,238,.25); }
 .skill.off .sk-sub { color: var(--muted); }
 .skill.run { border-color: var(--amber); }
+.skill[hidden] { display: none; }
 @media (hover: none) and (pointer: coarse) {
   #skillBar { display: contents; }
   .skill { position: absolute; width: 74px; height: 64px; bottom: calc(112px + env(safe-area-inset-bottom, 0px)); padding: 0 4px; }
   #skHeli { left: max(16px, env(safe-area-inset-left, 0px)); }
   #skTank { left: calc(max(16px, env(safe-area-inset-left, 0px)) + 84px); }
+  #skJump { left: max(16px, env(safe-area-inset-left, 0px)); bottom: calc(184px + env(safe-area-inset-bottom, 0px)); }
   .skill .sk-key { display: none; }
   .skill .sk-name { font-size: 12px; }
 }
@@ -118,6 +120,7 @@ body { margin: 0; background: #0d1310; color: var(--paper); font-family: var(--f
   .skill { bottom: calc(24px + env(safe-area-inset-bottom, 0px)); }
   #skHeli { left: calc(max(16px, env(safe-area-inset-left, 0px)) + 180px); }
   #skTank { left: calc(max(16px, env(safe-area-inset-left, 0px)) + 264px); }
+  #skJump { left: calc(max(16px, env(safe-area-inset-left, 0px)) + 348px); bottom: calc(24px + env(safe-area-inset-bottom, 0px)); }
 }
 
 /* ---------- 連殺、通緝、Boss ---------- */
@@ -355,6 +358,7 @@ button.start:focus-visible { outline: 3px solid var(--amber); outline-offset: 3p
     <div id="skillBar">
       <button class="skill" id="skHeli" tabindex="-1"><i class="sk-cd" id="skHeliCd"></i><span class="sk-key">F</span><span class="sk-name">空中支援</span><span class="sk-sub" id="skHeliSub">就緒</span></button>
       <button class="skill" id="skTank" tabindex="-1"><i class="sk-cd" id="skTankCd"></i><span class="sk-key">G</span><span class="sk-name">地表最強</span><span class="sk-sub" id="skTankSub">×3</span></button>
+      <button class="skill" id="skJump" tabindex="-1" hidden><i class="sk-cd" id="skJumpCd"></i><span class="sk-key">H</span><span class="sk-name">飛天汽車</span><span class="sk-sub" id="skJumpSub">就緒</span></button>
     </div>
     <div id="tut" hidden><div class="eyebrow">新手教學 <span id="tutN"></span></div><div id="tutTxt"></div></div>
     <div id="hint"></div>
@@ -392,6 +396,7 @@ button.start:focus-visible { outline: 3px solid var(--amber); outline-offset: 3p
         <dt>← → / A D</dt><dd>換車道（拿著道具也可以）</dd>
         <dt>滑鼠移動</dt><dd>轉動視角瞄準。點一下畫面會鎖定游標；若鎖不到，改成按住左鍵拖曳</dd>
         <dt>F / G</dt><dd>空中支援：直升機磁鐵吸走敵人（不含 Boss），冷卻 30 秒。地表最強：三台戰車橫穿高速公路，撞到的車全部毀掉，共 3 次</dd>
+        <dt>H</dt><dd>飛天汽車（需在車庫商店解鎖）：往上噴射升空，落地時震毀範圍內的所有車，不會被通緝；Boss 受 25% 傷害</dd>
         <dt>按住 Tab 或 Q</dt><dd>叫出道具轉盤（時間變慢），移動滑鼠或按 ← → 選擇，放開即裝備</dd>
         <dt>空白鍵 / 滑鼠左鍵</dt><dd>攻擊（丟、開槍）。C 鍵視角回正</dd>
         <dt>0–6、滾輪</dt><dd>快速切換道具，0 是大腳（踹飛一般車）</dd>
@@ -555,7 +560,7 @@ const LANES = [-5.25, -1.75, 1.75, 5.25];   // 0 為內側（超車道）
 let MAX_SPEED = 47;                          // m/s，約 170 km/h（引擎改造會提高）
 let PMAX = 100, HELI_CD = 30;                // 車況上限、空中支援冷卻（車體／技能改造會調整）
 const SAVE_KEY = 'rck-save';
-const save = { coins: 0, earned: -1, uid: '', own: {}, up: { engine: 0, body: 0, armor: 0, ammo: 0, heli: 0, tank: 0 } };
+const save = { coins: 0, earned: -1, uid: '', own: {}, up: { engine: 0, body: 0, armor: 0, ammo: 0, heli: 0, tank: 0, jump: 0 } };
 try { const o = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'); if (o) { save.coins = +o.coins || 0; save.earned = o.earned >= 0 ? +o.earned : -1; save.uid = typeof o.uid === 'string' ? o.uid : ''; Object.assign(save.own, o.own); Object.assign(save.up, o.up); } } catch (_) {}
 const persist = () => { try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch (_) {} cloudDirty(); };
 const KM0 = 34;
@@ -587,13 +592,15 @@ const UPGRADES = [
   { id: 'armor',  name: '防彈裝甲', max: 4, base: 200, desc: lv => `受到的傷害 −8%（目前 −${8 * lv}%）` },
   { id: 'ammo',   name: '武器強化', max: 5, base: 180, desc: lv => `所有武器傷害 +12%（目前 +${12 * lv}%）` },
   { id: 'heli',   name: '空中支援改裝', max: 3, base: 300, desc: lv => `冷卻 −5 秒（目前 ${30 - 5 * lv} 秒）` },
+  { id: 'jump',   name: '飛天汽車', max: 4, costs: [600, 400, 700, 1000], desc: lv => lv === 0 ? '解鎖技能（H）：升空後落地，震毀範圍內所有車' : `落地範圍 ${14 + 4 * (lv - 1)} 公尺・冷卻 ${30 - 5 * (lv - 1)} 秒` + (lv < 4 ? `（下一級：${14 + 4 * lv} 公尺・${30 - 5 * lv} 秒）` : '') },
   { id: 'tank',   name: '戰車車庫', max: 2, base: 500, desc: lv => `地表最強次數 +1（目前 ${3 + lv} 次）` },
 ];
+const upCost = (u, lv) => u.costs ? u.costs[lv] : u.base * (lv + 1);
 // 累計獲得金幣 earned：用來在多裝置合併存檔（金幣 = earned − 已花費）
 function spentOf(s) {
   let t = 0;
   WEAPONS.forEach(w => { if (w.price > 0 && s.own[w.id]) t += w.price; });
-  UPGRADES.forEach(u => { for (let i = 0; i < (s.up[u.id] || 0); i++) t += u.base * (i + 1); });
+  UPGRADES.forEach(u => { for (let i = 0; i < (s.up[u.id] || 0); i++) t += upCost(u, i); });
   return t;
 }
 if (!(save.earned >= 0)) save.earned = save.coins + spentOf(save);
@@ -1092,7 +1099,7 @@ function updateCars(dt, t) {
 }
 
 // ---------- 玩法系統：連殺、補給、瓶子、波次、Boss、警車 ----------
-const G = { region: 0, combo: 0, comboT: 0, wanted: 0, wantedT: 0, policeT: 3, nextWave: 1500, waveN: 0, nextBoss: 2500, boss: null, lastLevel: 1, policeNear: false, heli: null, heliCD: 0, tanks: 3 + save.up.tank, tankLock: 0, tankList: [], tankKills: 0 };
+const G = { region: 0, combo: 0, comboT: 0, wanted: 0, wantedT: 0, policeT: 3, nextWave: 1500, waveN: 0, nextBoss: 2500, boss: null, lastLevel: 1, policeNear: false, heli: null, heliCD: 0, tanks: 3 + save.up.tank, tankLock: 0, tankList: [], tankKills: 0, jump: null, jumpCD: 0 };
 const pickups = [], bottles = [];
 const REGIONS = ['高雄', '台南', '嘉義', '雲林', '彰化', '台中', '苗栗', '新竹', '桃園', '新北', '台北', '基隆'];
 const regionAt = s => REGIONS[Math.floor(s / 1500) % REGIONS.length];
@@ -1168,7 +1175,8 @@ function updateBubble(c, dt) {
 function resetGame() {
   if (G.heli) scene.remove(G.heli.g);
   G.tankList.forEach(t => scene.remove(t.g));
-  Object.assign(G, { region: 0, combo: 0, comboT: 0, wanted: 0, wantedT: 0, policeT: 3, nextWave: 1500, waveN: 0, nextBoss: 2500, boss: null, lastLevel: 1, policeNear: false, heli: null, heliCD: 0, tanks: 3 + save.up.tank, tankLock: 0, tankList: [], tankKills: 0 });
+  Object.assign(G, { region: 0, combo: 0, comboT: 0, wanted: 0, wantedT: 0, policeT: 3, nextWave: 1500, waveN: 0, nextBoss: 2500, boss: null, lastLevel: 1, policeNear: false, heli: null, heliCD: 0, tanks: 3 + save.up.tank, tankLock: 0, tankList: [], tankKills: 0, jump: null, jumpCD: 0 });
+  jumpMarker.visible = false;
   pickups.forEach(p => scene.remove(p.g)); pickups.length = 0;
   bottles.forEach(b => scene.remove(b.m)); bottles.length = 0;
 }
@@ -1339,12 +1347,57 @@ function updateTanks(dt) {
     if (Math.abs(t.x) > 17 || t.s < player.s - 60) { scene.remove(t.g); G.tankList.splice(i, 1); if (!G.tankList.length) msg(G.tankKills > 0 ? `戰車共毀掉 ${G.tankKills} 台車` : '戰車駛離', 'good'); }
   }
 }
+// ---------- 飛天汽車：升空、空中調整、落地震毀範圍內的車（不通緝）----------
+const jumpR = () => 14 + 4 * (save.up.jump - 1), jumpCDmax = () => 30 - 5 * (save.up.jump - 1);
+const JUMP_UP = 0.9, JUMP_HANG = 0.9, JUMP_DOWN = 0.8, JUMP_H = 25;
+const jumpMarker = new THREE.Mesh(new THREE.RingGeometry(0.9, 1, 48), new THREE.MeshBasicMaterial({ color: 0xffd23f, transparent: true, opacity: 0.85, side: THREE.DoubleSide, depthWrite: false }));
+jumpMarker.rotation.x = -Math.PI / 2; jumpMarker.visible = false; scene.add(jumpMarker);
+const jumpWave = new THREE.Mesh(new THREE.RingGeometry(0.85, 1, 48), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0, side: THREE.DoubleSide, depthWrite: false }));
+jumpWave.rotation.x = -Math.PI / 2; jumpWave.visible = false; scene.add(jumpWave);
+function useJump() {
+  if (!skillOK() || save.up.jump < 1 || G.jump) return;
+  if (G.jumpCD > 0) { msg(`飛天汽車冷卻中 ${Math.ceil(G.jumpCD)} 秒`, 'bad'); return; }
+  G.jump = { t: 0, y: 0, tilt: 0 }; msg('飛天汽車！', 'good'); sfx('boss');
+}
+function jumpLand() {
+  const R = jumpR(), p = player; let n = 0;
+  for (const c of cars) {
+    if (c.dead || c.magnet || c.fling) continue;
+    if (Math.hypot(c.x - p.x, c.s - p.s) > R + c.hl) continue;
+    if (c.kind === 'boss') {
+      c.hp -= c.maxHp * 0.25; drawLabel(c); msg('落地重創 Boss！', 'amber'); sfx('hitgood');
+      if (c.hp <= 0) kill(c, { skill: true, jump: true });
+    } else { n++; kill(c, { skill: true, jump: true }); c.vx = (c.x < p.x ? -1 : 1) * 9; }
+  }
+  for (let k = 0; k < 28; k++) { const a = rand(0, 6.283), r = rand(1, R * 0.7); puff(p.x + Math.cos(a) * r, rand(0.3, 2), -(p.s + Math.sin(a) * r), k % 2 ? 0xff8a2a : 0x888888, 2.2); }
+  p.shake = 0.7; p.invulT = Math.max(p.invulT, 0.6); sfx('boom'); sfx('crash'); flashCross();
+  jumpWave.visible = true; jumpWave.userData = { t: 0, x: p.x, s: p.s, R };
+  G.jumpCD = jumpCDmax(); G.jump = null; jumpMarker.visible = false;
+  msg(n > 0 ? `落地震毀 ${n} 台車` : '平安降落', 'good');
+}
+function updateJump(dt) {
+  const W = jumpWave, d = W.userData;
+  if (W.visible) { d.t += dt; const k = d.t / 0.55; if (k >= 1) W.visible = false; else { const r = Math.max(0.1, d.R * (1 - (1 - k) * (1 - k))); W.scale.set(r, r, 1); W.position.set(d.x, 0.3, -d.s); W.material.opacity = 0.8 * (1 - k); } }
+  if (G.jumpCD > 0 && !G.jump) G.jumpCD = Math.max(0, G.jumpCD - dt);
+  const J = G.jump; if (!J) return;
+  J.t += dt; const T = J.t, total = JUMP_UP + JUMP_HANG + JUMP_DOWN;
+  if (T < JUMP_UP) { const k = T / JUMP_UP; J.y = JUMP_H * (1 - (1 - k) * (1 - k)); }
+  else if (T < JUMP_UP + JUMP_HANG) J.y = JUMP_H + Math.sin((T - JUMP_UP) * 4) * 0.4;
+  else { const k = (T - JUMP_UP - JUMP_HANG) / JUMP_DOWN; J.y = JUMP_H * (1 - k * k); }
+  J.tilt = Math.sin(Math.min(1, J.y / JUMP_H) * Math.PI / 2) * 0.32;
+  player.invulT = Math.max(player.invulT, 0.15);
+  if (T < JUMP_UP && Math.random() < 0.8) puff(player.x + rand(-0.5, 0.5), Math.max(0.4, J.y - 1), -player.s, 0xffa030, 1.3);
+  // 落點預告：依目前車速預估落地位置，玩家可用油門與換線調整
+  const remain = Math.max(0, total - T), R = jumpR();
+  jumpMarker.visible = true; jumpMarker.scale.set(R, R, 1); jumpMarker.position.set(LANES[player.lane], 0.3, -(player.s + player.speed * remain));
+  if (T >= total) jumpLand();
+}
 function updateSkills(dt) {
   if (G.heliCD > 0) G.heliCD = Math.max(0, G.heliCD - dt);
   if (G.tankLock > 0) G.tankLock -= dt;
-  updateHeli(dt); updateTanks(dt);
+  updateHeli(dt); updateTanks(dt); updateJump(dt);
 }
-for (const [id, fn] of [['skHeli', () => useHeli()], ['skTank', () => useTanks()]]) {
+for (const [id, fn] of [['skHeli', () => useHeli()], ['skTank', () => useTanks()], ['skJump', () => useJump()]]) {
   const el = document.getElementById(id);
   el.addEventListener('pointerdown', e => { e.preventDefault(); fn(); });
   el.addEventListener('click', e => e.preventDefault());
@@ -1525,7 +1578,8 @@ function kill(c, opts = {}) {
   } else if (c.kind === 'police') {
     if (opts.skill) { addScore(100); msg('清除警車 +100', 'amber'); }
     else { stats.cops++; addScore(-300); breakCombo(); addWanted(1); msg('襲警！ −300', 'bad'); }
-  } else if (!opts.skill) { stats.innocent++; addScore(-200); breakCombo(); addWanted(1); msg('誤傷無辜 −200', 'bad'); }
+  } else if (opts.jump) { addScore(50); }
+  else if (!opts.skill) { stats.innocent++; addScore(-200); breakCombo(); addWanted(1); msg('誤傷無辜 −200', 'bad'); }
 }
 
 function kickCar(c) {
@@ -1668,7 +1722,7 @@ function updatePlayer(dt) {
   if ((keys.Space || mouseDown) && !wheelOpen) attack();
 
   // 碰撞
-  for (const c of cars) {
+  if (!G.jump) for (const c of cars) {
     if (c.dead || c.magnet || c.fling) continue;
     const ddx = c.x - p.x, ds = c.s - p.s;
     const sw = 0.85 + c.hw, sl = 2.2 + c.hl;
@@ -1694,10 +1748,11 @@ function updatePlayer(dt) {
 function placeRig() {
   const p = player;
   // 相機與座艙
-  rig.position.set(p.x - 0.38, 1.18, -p.s);
+  const jy = G.jump ? G.jump.y : 0;
+  rig.position.set(p.x - 0.38, 1.18 + jy, -p.s);
   const sh = reduceMotion ? 0 : p.shake;
   camera.position.set(rand(-sh, sh) * 0.3, rand(-sh, sh) * 0.3 + Math.sin(p.s * 0.9) * 0.004, 0);
-  camera.rotation.set(0, -p.camYaw, 0);
+  camera.rotation.order = 'YXZ'; camera.rotation.set(G.jump ? -G.jump.tilt : 0, -p.camYaw, 0);
   p.wheelMesh.rotation.z = -p.steer * 0.6;
 
   // 手持模型
@@ -1745,6 +1800,8 @@ function updateHud(dt) {
   hs.classList.toggle('off', !hReady); hs.classList.toggle('run', !!G.heli); ts.classList.toggle('off', !tReady); ts.classList.toggle('run', G.tankList.length > 0);
   setText('skHeliSub', G.heli ? '出動中' : G.heliCD > 0 ? Math.ceil(G.heliCD) + ' 秒' : '就緒');
   setText('skTankSub', G.tanks > 0 ? '×' + G.tanks : '用完');
+  const js = $('#skJump'); js.hidden = save.up.jump < 1;
+  if (save.up.jump >= 1) { const jr = G.jumpCD <= 0 && !G.jump; js.classList.toggle('off', !jr); js.classList.toggle('run', !!G.jump); setText('skJumpSub', G.jump ? '飛行中' : G.jumpCD > 0 ? Math.ceil(G.jumpCD) + ' 秒' : '就緒'); $('#skJumpCd').style.height = (G.jumpCD > 0 ? G.jumpCD / jumpCDmax() * 100 : 0) + '%'; }
   $('#skHeliCd').style.height = (G.heliCD > 0 ? G.heliCD / HELI_CD * 100 : 0) + '%';
   const bb = $('#bossBox'); bb.hidden = !G.boss; if (G.boss) $('#bossBar').style.width = Math.max(0, G.boss.hp / G.boss.maxHp * 100) + '%';
   const sb = $('#spdBar'); sb.style.width = (player.speed / MAX_SPEED * 100) + '%'; sb.classList.toggle('over', kmh > 110);
@@ -1877,6 +1934,7 @@ addEventListener('keydown', e => {
   if (e.code === 'ArrowRight' || e.code === 'KeyD') changeLane(1);
   if (e.code === 'KeyF') useHeli();
   if (e.code === 'KeyG') useTanks();
+  if (e.code === 'KeyH') useJump();
   if (e.code === 'KeyC') player.aim = 0;
 });
 addEventListener('keyup', e => { keys[e.code] = false; if ((e.code === 'Tab' || e.code === 'KeyQ') && wheelOpen) closeWheel(); });
@@ -2203,7 +2261,7 @@ function renderShop() {
   });
   h += '<div class="shopSec">改造車子</div>';
   UPGRADES.forEach(u => {
-    const lv = save.up[u.id], maxed = lv >= u.max, cost = u.base * (lv + 1), can = save.coins >= cost;
+    const lv = save.up[u.id], maxed = lv >= u.max, cost = upCost(u, lv), can = save.coins >= cost;
     h += `<div class="item u"><div><div class="nm">${u.name}<span class="lv">Lv ${lv}/${u.max}</span></div><div class="ds">${u.desc(lv)}</div><div class="pips">${Array.from({ length: u.max }, (_, k) => `<i class="${k < lv ? 'on' : ''}"></i>`).join('')}</div></div><button data-u="${u.id}" ${maxed || !can ? 'disabled' : ''} class="${maxed ? 'done' : ''}">${maxed ? '已滿級' : '$ ' + cost}</button></div>`;
   });
   const list = $('#shopList'), top = list.parentElement.parentElement.scrollTop;
@@ -2216,7 +2274,7 @@ function refreshTitleCoin() { $('#titleCoin').textContent = '金幣 ' + save.coi
 $('#shopList').addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b || b.disabled) return;
   if (b.dataset.w != null) { const w = WEAPONS[+b.dataset.w]; if (+b.dataset.w === shopOrder().find(i => !owned(i)) && save.coins >= w.price && !owned(+b.dataset.w)) { save.coins -= w.price; save.own[w.id] = 1; } }
-  else { const u = UPGRADES.find(x => x.id === b.dataset.u), lv = save.up[u.id], cost = u.base * (lv + 1); if (lv < u.max && save.coins >= cost) { save.coins -= cost; save.up[u.id]++; } }
+  else { const u = UPGRADES.find(x => x.id === b.dataset.u), lv = save.up[u.id], cost = upCost(u, lv); if (lv < u.max && save.coins >= cost) { save.coins -= cost; save.up[u.id]++; } }
   persist(); sfx('pickup'); renderShop();
 });
 $('#shopBtn1').addEventListener('click', () => openShop('#title'));
