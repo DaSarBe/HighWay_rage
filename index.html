@@ -331,7 +331,7 @@ button.start:focus-visible { outline: 3px solid var(--amber); outline-offset: 3p
         <dt>F / G</dt><dd>空中支援：直升機磁鐵吸走敵人（不含 Boss），冷卻 30 秒。地表最強：三台戰車橫穿高速公路，撞到的車全部毀掉，共 3 次</dd>
         <dt>按住 Tab 或 Q</dt><dd>叫出道具轉盤（時間變慢），移動滑鼠或按 ← → 選擇，放開即裝備</dd>
         <dt>空白鍵 / 滑鼠左鍵</dt><dd>攻擊（丟、開槍）。C 鍵視角回正</dd>
-        <dt>0–7、滾輪</dt><dd>快速切換道具，0 是大腳（踹飛一般車）</dd>
+        <dt>0–6、滾輪</dt><dd>快速切換道具，0 是大腳（踹飛一般車）</dd>
         <dt>P / Esc</dt><dd>暫停</dd>
         <dt>目標</dt><dd>連殺累積倍率，撿修車包回血；三寶會急煞、丟瓶子，路隊長會卡位，Boss 要輪流換武器</dd>
         <dt>N / M</dt><dd>開關背景音樂／全部靜音</dd>
@@ -350,7 +350,7 @@ button.start:focus-visible { outline: 3px solid var(--amber); outline-offset: 3p
   <div id="shop" class="overlay" hidden style="z-index:5">
     <div class="board sign">
       <div class="shopH"><h1>車庫商店</h1><div class="bal" id="shopBal"></div></div>
-      <div class="sub">用清道賺到的金幣買裝備、改造車子</div>
+      <div class="sub">用清道賺到的金幣買裝備（依序購買）、改造車子</div>
       <div id="shopList"></div>
       <div class="go"><button class="start" id="shopBack">返回</button><small>金幣 = 分數 ÷ 4，加上每隻 Boss 200</small></div>
     </div>
@@ -406,17 +406,15 @@ const ICONS = {
   foot: '<ellipse cx="0" cy="13" rx="9" ry="11" fill="currentColor"/><path d="M-12 -6 C-12 -14 -4 -17 4 -17 C12 -17 14 -8 12 2 C11 8 6 6 0 6 C-6 6 -12 6 -12 -6 Z" fill="currentColor"/><circle cx="-9" cy="-22" r="4.6" fill="currentColor"/><circle cx="-1" cy="-24" r="3.8" fill="currentColor"/><circle cx="6" cy="-23" r="3.4" fill="currentColor"/><circle cx="12" cy="-20" r="3" fill="currentColor"/><circle cx="16" cy="-14" r="2.6" fill="currentColor"/>',
   egg: '<ellipse cx="0" cy="2" rx="13" ry="17" fill="currentColor"/>',
   pan: '<g transform="rotate(-25)"><circle cx="-8" cy="0" r="15" fill="currentColor"/><rect x="5" y="-3.5" width="24" height="7" rx="3.5" fill="currentColor"/></g>',
-  machete: '<g transform="rotate(-20)"><path d="M-14 -4 L22 -8 Q30 -6 28 2 L-14 6 Z" fill="currentColor"/><rect x="-30" y="-4" width="15" height="9" rx="3" fill="currentColor"/></g>',
   axe: '<g transform="rotate(25)"><rect x="-3" y="-22" width="6" height="46" rx="3" fill="currentColor"/><path d="M2 -21 L17 -26 Q25 -13 17 2 L2 -6 Z" fill="currentColor"/></g>',
   pistol: '<path d="M-20 -10 H20 V-1 H-1 L-3 15 H-14 L-11 -1 H-20 Z" fill="currentColor"/>',
   rifle: '<path d="M-31 -1 L-14 -6 H18 V-8 H31 V-4 H18 V-1 H-1 L-5 7 H-11 V1 L-31 7 Z" fill="currentColor"/><rect x="-3" y="-14" width="16" height="5" rx="2.5" fill="currentColor"/>',
   shotgun: '<path d="M-31 1 L-13 -3 H29 V1 H-7 L-9 5 H-14 L-31 9 Z" fill="currentColor"/><rect x="-5" y="-8" width="34" height="3.5" fill="currentColor"/>',
 };
 const WEAPONS = [
-  { id: 'foot',    name: '大腳',   sub: '踹飛一般車・不會被通緝', type: 'kick', rate: 0.7, dmg: 28, price: 0 },
-  { id: 'egg',     name: '雞蛋',   sub: '投擲・糊住擋風玻璃', type: 'throw', price: 0, dmg: 12, rate: 0.32, spd: 30 },
+  { id: 'foot',    name: '大腳',   sub: '踹飛一般車・撞到敵人秒殺', type: 'kick', rate: 0.7, dmg: 28, price: 0 },
+  { id: 'egg',     name: '雞蛋',   sub: '投擲・糊窗・下次受傷 ×2', type: 'throw', price: 0, dmg: 12, rate: 0.32, spd: 30 },
   { id: 'pan',     name: '平底鍋', sub: '投擲・敲車窗',       type: 'throw', dmg: 35, rate: 0.5, spd: 30, tag: '鏘！', price: 0 },
-  { id: 'machete', name: '開山刀', sub: '投擲・飛刀連發',     type: 'throw', dmg: 50, rate: 0.45, spd: 36, tag: '砍中！', price: 250 },
   { id: 'axe',     name: '斧頭',   sub: '投擲・重擊',         type: 'throw', dmg: 85, rate: 0.85, spd: 28, tag: '劈開！', price: 450 },
   { id: 'pistol',  name: '手槍',   sub: '射程中・連發',       type: 'gun', dmg: 25, rate: 0.22, range: 140, spread: 0.012, pellets: 1, snd: 'pistol', price: 400 },
   { id: 'rifle',   name: '來福槍', sub: '射程遠・一發入魂',   type: 'gun', dmg: 95, rate: 0.9, range: 320, spread: 0, pellets: 1, snd: 'rifle', price: 900 },
@@ -733,7 +731,7 @@ function updateCars(dt, t) {
       let end = false;
       for (const e of cars) {
         if (e === c || e.dead || e.magnet || e.fling || e.kind === 'normal') continue;
-        if (c.my < 3.6 && Math.abs(e.x - c.x) < e.hw + 1.2 && Math.abs(e.s - c.s) < e.hl + 2.4) { damage(e, 70, '被飛車撞到！'); if (!e.dead) e.speed *= 0.6; stats.kickHits++; end = true; break; }
+        if (c.my < 3.6 && Math.abs(e.x - c.x) < e.hw + 1.2 && Math.abs(e.s - c.s) < e.hl + 2.4) { damage(e, e.kind === 'boss' ? 70 : 9999, '被飛車撞到！'); if (!e.dead) e.speed *= 0.6; stats.kickHits++; end = true; break; }
       }
       if (end || c.fly > 2.2 || Math.abs(c.x) > 15) {
         for (let k = 0; k < 8; k++) puff(c.x, rand(0.3, 1.2), -c.s, k % 2 ? 0xff8a2a : 0x555555, 1.4);
@@ -847,7 +845,7 @@ function updateCars(dt, t) {
     c.tailMat.color.setHex(braking ? 0xff2a1a : 0x7a1010);
     const on = c.blinkT > 0 && c.blinkSide !== 0 && Math.floor(t * 3) % 2 === 0;
     c.blinkers[0].visible = on && c.blinkSide < 0; c.blinkers[1].visible = on && c.blinkSide > 0;
-    c.bodyMat.emissive.setHex(c.flashT > 0 ? 0x888888 : 0x000000);
+    c.bodyMat.emissive.setHex(c.flashT > 0 ? 0x888888 : c.hex ? 0x5a4400 : 0x000000);
     if (c.lights) { const on = Math.floor(t * 6) % 2 === 0; c.lights[0].visible = on; c.lights[1].visible = !on; }
     if (c.label) { const d = Math.abs(c.s - player.s); const k = Math.max(1, d / 45); c.label.sp.scale.set(3.2 * k, 1.4 * k, 1); c.label.sp.position.y = c.labelY + k * 0.5; }
   }
@@ -1179,7 +1177,6 @@ const weaponModels = {};
   mk('foot', [box(0.2, 0.12, 0.46, white, 0, 0, -0.1), box(0.22, 0.04, 0.5, black, 0, -0.08, -0.1), box(0.19, 0.1, 0.12, M(0xe8e0d0), 0, -0.01, -0.36)]);
   const pan = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.13, 0.035, 20), black); pan.rotation.z = Math.PI / 2; pan.position.set(0, 0.02, -0.4);
   mk('pan', [pan, box(0.03, 0.03, 0.28, black, 0, 0, -0.12)]);
-  mk('machete', [box(0.012, 0.075, 0.55, steel, 0, 0.01, -0.36), box(0.03, 0.04, 0.14, black, 0, 0, -0.03)]);
   mk('axe', [box(0.035, 0.035, 0.6, wood, 0, 0, -0.26), box(0.025, 0.16, 0.1, steel, 0, 0.07, -0.52)]);
   mk('pistol', [box(0.04, 0.05, 0.22, black, 0, 0.03, -0.09), box(0.035, 0.1, 0.05, black, 0, -0.02, 0)], -0.21);
   mk('rifle', [box(0.045, 0.07, 0.55, wood, 0, 0, -0.2), cyl(0.014, 0.4, black, 0, 0.02, -0.65), cyl(0.022, 0.2, black, 0, 0.07, -0.3)], -0.86);
@@ -1225,7 +1222,7 @@ function updateFx(dt) {
       if (isEgg) {
         const sp = new THREE.Mesh(splatGeo, hit.splats % 2 ? splatWhite : splatMat);
         sp.position.set(rand(-0.45, 0.45), hit.rearY + rand(-0.1, 0.1), hit.rearZ + 0.02); sp.scale.setScalar(rand(0.8, 1.4)); hit.g.add(sp); hit.splats++;
-        hit.blindT = 3.5; damage(hit, e.w.dmg, '糊窗！'); sfx('splat'); if (hit.kind !== 'normal') say(hit, pick(LINES[hit.kind].blind), 1.8, true);
+        hit.blindT = 3.5; damage(hit, e.w.dmg, '糊窗！'); if (!hit.dead) { if (!hit.hex) msg('糊住了！下次受傷 ×2', 'amber'); hit.hex = true; } sfx('splat'); if (hit.kind !== 'normal') say(hit, pick(LINES[hit.kind].blind), 1.8, true);
       } else {
         damage(hit, e.w.dmg, e.w.tag); sfx('impact'); player.shake = Math.max(player.shake, 0.05);
         puff(ex, ey, -es, 0xffe9a8, 0.5);
@@ -1255,6 +1252,7 @@ function damage(c, amount, tag) {
     }
     amount *= Math.max(0.3, 1 - 0.18 * c.streak);
   }
+  if (c.hex) { c.hex = false; amount *= 2; }
   sfx(c.kind === 'normal' || c.kind === 'police' ? 'hitbad' : 'hitgood');
   c.hp -= amount; c.flashT = 0.08;
   if (c.label) drawLabel(c);
@@ -1585,7 +1583,7 @@ addEventListener('keydown', e => {
     if (e.code === 'ArrowRight' || e.code === 'KeyD') { wheelSel = (wheelSel + 1) % WEAPONS.length; renderWheel(); sfx('tick'); }
     return;
   }
-  const dm = /^Digit([0-7])$/.exec(e.code); if (dm) { equip(+dm[1]); return; }
+  const dm = /^Digit([0-6])$/.exec(e.code); if (dm) { equip(+dm[1]); return; }
   if (e.code === 'KeyM') { muted = !muted; msg(muted ? '靜音' : '聲音開啟'); return; }
   if (e.code === 'KeyN') { musicOn = !musicOn; $('#tMusic').classList.toggle('off', !musicOn); msg(musicOn ? '背景音樂開' : '背景音樂關'); return; }
   if (e.code === 'ArrowLeft' || e.code === 'KeyA') changeLane(-1);
@@ -1852,13 +1850,15 @@ function gameOver() {
   $('#over').hidden = false; $('#againBtn').focus();
 }
 let shopFrom = '#title';
+const shopOrder = () => WEAPONS.map((w, i) => i).filter(i => WEAPONS[i].price > 0);
 function renderShop() {
   $('#shopBal').textContent = '金幣 ' + save.coins.toLocaleString();
   let h = '<div class="shopSec">裝備</div>';
-  WEAPONS.forEach((w, i) => {
-    if (w.price === 0) return;
-    const has = owned(i), can = save.coins >= w.price;
-    h += `<div class="item"><svg class="ic" viewBox="-34 -27 68 54" aria-hidden="true">${ICONS[w.id]}</svg><div><div class="nm">${w.name}</div><div class="ds">${w.sub}</div></div><button data-w="${i}" ${has || !can ? 'disabled' : ''} class="${has ? 'done' : ''}">${has ? '已擁有' : '$ ' + w.price}</button></div>`;
+  const order = shopOrder(), nextI = order.find(i => !owned(i));
+  order.forEach((i, k) => {
+    const w = WEAPONS[i], has = owned(i), isNext = i === nextI, can = save.coins >= w.price;
+    const note = has || isNext ? '' : `（需先購買${WEAPONS[order[k - 1]].name}）`;
+    h += `<div class="item"><svg class="ic" viewBox="-34 -27 68 54" aria-hidden="true">${ICONS[w.id]}</svg><div><div class="nm">${w.name}</div><div class="ds">${w.sub}${note}</div></div><button data-w="${i}" ${has || !isNext || !can ? 'disabled' : ''} class="${has ? 'done' : ''}">${has ? '已擁有' : isNext ? '$ ' + w.price : '未解鎖'}</button></div>`;
   });
   h += '<div class="shopSec">改造車子</div>';
   UPGRADES.forEach(u => {
@@ -1873,7 +1873,7 @@ function closeShop() { $('#shop').hidden = true; $(shopFrom).hidden = false; ref
 function refreshTitleCoin() { $('#titleCoin').textContent = '金幣 ' + save.coins.toLocaleString(); }
 $('#shopList').addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b || b.disabled) return;
-  if (b.dataset.w != null) { const w = WEAPONS[+b.dataset.w]; if (save.coins >= w.price && !owned(+b.dataset.w)) { save.coins -= w.price; save.own[w.id] = 1; } }
+  if (b.dataset.w != null) { const w = WEAPONS[+b.dataset.w]; if (+b.dataset.w === shopOrder().find(i => !owned(i)) && save.coins >= w.price && !owned(+b.dataset.w)) { save.coins -= w.price; save.own[w.id] = 1; } }
   else { const u = UPGRADES.find(x => x.id === b.dataset.u), lv = save.up[u.id], cost = u.base * (lv + 1); if (lv < u.max && save.coins >= cost) { save.coins -= cost; save.up[u.id]++; } }
   persist(); sfx('pickup'); renderShop();
 });
