@@ -2088,13 +2088,9 @@ function hurt(n, text) {
   if (player.hp <= 0) gameOver();
 }
 function changeLane(d, auto) {
-  if (state !== 'play' || paused || gunCtl()) return false;
+  if (state !== 'play' || paused) return false;
   const nl = clamp(player.lane + d, 0, 3);
   if (nl === player.lane) { player.pendLane = 0; return false; }
-  if (!G.jump && sideDanger(d)) {   // 旁邊有車（在空中就不用擔心）：先不切，排隊等它過去（1.2 秒內）
-    if (!auto) { player.pendLane = d; player.pendT = 1.2; msg('旁邊有車！等它過去再切', 'bad'); }
-    return false;
-  }
   player.prevLane = player.lane; player.lane = nl; player.pendLane = 0; tut.lanes++;
   return true;
 }
@@ -2343,7 +2339,12 @@ addEventListener('keydown', e => {
   if (!$('#homeConfirm').hidden) { if (e.code === 'Escape' || e.code === 'KeyP') closeHomeAsk(); return; }
   if (e.code === 'Escape' || e.code === 'KeyP') { if (performance.now() - lastLockPause < 250) return; togglePause(); return; }
   if (paused) return;
-  if (gunCtl()) { if (e.code === 'Space' || e.code === 'KeyR') gunRocket(); return; }
+  if (gunCtl()) {
+    if (e.code === 'Space' || e.code === 'KeyR') gunRocket();
+    if (e.code === 'ArrowLeft' || e.code === 'KeyA') changeLane(-1);
+    if (e.code === 'ArrowRight' || e.code === 'KeyD') changeLane(1);
+    return;
+  }
   if (e.code === 'Tab' || e.code === 'KeyQ') { openWheel(); return; }
   if (wheelOpen) {
     if (e.code === 'ArrowLeft' || e.code === 'KeyA') { wheelSel = (wheelSel + WEAPONS.length - 1) % WEAPONS.length; renderWheel(); sfx('tick'); }
@@ -2386,7 +2387,7 @@ cv.addEventListener('pointerdown', e => {
 cv.addEventListener('pointermove', e => {
   if (gunCtl()) {
     if (e.pointerType === 'mouse' && document.pointerLockElement === cv) { gunLook(e.movementX, e.movementY, 0.0028); return; }
-    if (e.pointerId !== look.id) return;
+    if (e.pointerId !== look.id || look.swipe) return;   // 螢幕下半部的橫向滑動留給換車道
     gunLook(e.clientX - look.x, e.clientY - look.y, e.pointerType === 'touch' ? 0.006 : 0.004); look.x = e.clientX; look.y = e.clientY; return;
   }
   if (e.pointerType === 'mouse' && document.pointerLockElement === cv) { lookBy(e.movementX, 0.0028); return; }
