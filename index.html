@@ -422,7 +422,7 @@ button.start:focus-visible { outline: 3px solid var(--amber); outline-offset: 3p
 }
 @media (max-width: 420px) { #scoreBox { transform: scale(.72) !important; } }
 @media (max-width: 360px) { #scoreBox { transform: scale(.58) !important; } }
-/* 技能鈕在左側直列（由上而下：空中支援、地表最強、飛天汽車、陸航），時速面板在最下方 */
+/* 技能鈕在左側直列（由上而下：空中支援、地表最強、飛天汽車、遙控直升機），時速面板在最下方 */
 #skillBar { flex-direction: column; align-items: flex-start; }
 @media (hover: none) and (pointer: coarse) {
   #skHeli, #skTank, #skJump, #skGun { left: max(16px, env(safe-area-inset-left, 0px)); }
@@ -470,7 +470,7 @@ button.start:focus-visible { outline: 3px solid var(--amber); outline-offset: 3p
 <div id="app" class="introing">
   <div id="hud">
     <div id="vignette"></div>
-    <div id="gunHud" hidden><div class="gTint"></div><div class="gTop">陸航的朋友<b id="gTime">20</b>秒</div><div class="gRet"><div class="hm"><i></i><i></i></div></div><div class="gAmmo">火箭<b id="gRock">6</b></div>
+    <div id="gunHud" hidden><div class="gTint"></div><div class="gTop">遙控直升機<b id="gTime">20</b>秒</div><div class="gRet"><div class="hm"><i></i><i></i></div></div><div class="gAmmo">火箭<b id="gRock">6</b></div>
       <div id="gunBtns"><button id="gRocket" aria-label="火箭">火箭</button><button id="gCannon" aria-label="機炮">機炮</button></div></div>
     <div id="scoreBox" class="sign">
       <div class="eyebrow" id="lvTxt">清道績效</div>
@@ -505,7 +505,7 @@ button.start:focus-visible { outline: 3px solid var(--amber); outline-offset: 3p
       <button class="skill" id="skHeli" tabindex="-1"><i class="sk-cd" id="skHeliCd"></i><span class="sk-key">F</span><span class="sk-name">空中支援</span><span class="sk-sub" id="skHeliSub">就緒</span></button>
       <button class="skill" id="skTank" tabindex="-1"><i class="sk-cd" id="skTankCd"></i><span class="sk-key">G</span><span class="sk-name">地表最強</span><span class="sk-sub" id="skTankSub">×3</span></button>
       <button class="skill" id="skJump" tabindex="-1" hidden><i class="sk-cd" id="skJumpCd"></i><span class="sk-key">H</span><span class="sk-name">飛天汽車</span><span class="sk-sub" id="skJumpSub">就緒</span></button>
-      <button class="skill" id="skGun" tabindex="-1" hidden><i class="sk-cd" id="skGunCd"></i><span class="sk-key">J</span><span class="sk-name">陸航的朋友</span><span class="sk-sub" id="skGunSub">就緒</span></button>
+      <button class="skill" id="skGun" tabindex="-1" hidden><i class="sk-cd" id="skGunCd"></i><span class="sk-key">J</span><span class="sk-name">遙控直升機</span><span class="sk-sub" id="skGunSub">就緒</span></button>
     </div>
     <div id="tut" hidden><div class="eyebrow">新手教學 <span id="tutN"></span></div><div id="tutTxt"></div></div>
     <div id="hint"></div>
@@ -540,7 +540,7 @@ button.start:focus-visible { outline: 3px solid var(--amber); outline-offset: 3p
       <dl class="keys touchOnly">
         <dt>左右滑</dt><dd>在畫面左半邊快速左右滑，換車道（拿著道具也可以）</dd>
         <dt>拖曳右半邊</dt><dd>在畫面右半邊拖曳，轉動視角瞄準</dd>
-        <dt>技能鈕</dt><dd>左側由上而下：空中支援（一開始就有）、地表最強、飛天汽車、陸航的朋友（後三種要在商店解鎖）</dd>
+        <dt>技能鈕</dt><dd>左側由上而下：空中支援（一開始就有）、地表最強、飛天汽車、遙控直升機（後三種要在商店解鎖）</dd>
         <dt>油門 / 煞車</dt><dd>右下角兩個踏板，按住不放；不踩油門會自動定速</dd>
         <dt>道具鈕</dt><dd>按住後把手指滑到想要的道具上再放開；或點一下打開轉盤再點選</dd>
         <dt>攻擊鈕</dt><dd>在技能鈕右邊、時速面板上方，按住連續攻擊</dd>
@@ -553,7 +553,7 @@ button.start:focus-visible { outline: 3px solid var(--amber); outline-offset: 3p
         <dt>← → / A D</dt><dd>換車道（拿著道具也可以）</dd>
         <dt>滑鼠移動</dt><dd>轉動視角瞄準。點一下畫面會鎖定游標；若鎖不到，改成按住左鍵拖曳</dd>
         <dt>F / G</dt><dd>空中支援：直升機磁鐵吸走敵人（不含 Boss），冷卻 30 秒（一開始就有）。地表最強（需在商店解鎖）：三台戰車橫穿高速公路，撞到的車全部毀掉</dd>
-        <dt>J</dt><dd>陸航的朋友（需在車庫商店解鎖）：武裝直升機飛來，你改用機鼻視角操控機炮（左鍵／按住「機炮」）與火箭（右鍵或 Space／「火箭」），車子自動直行且不會受傷。打到一般車會大量扣分</dd>
+        <dt>J</dt><dd>遙控直升機（需在車庫商店解鎖）：武裝直升機飛來，你改用機鼻視角操控機炮（左鍵／按住「機炮」）與火箭（右鍵或 Space／「火箭」），車子自動直行且不會受傷。打到一般車會大量扣分</dd>
         <dt>H</dt><dd>飛天汽車（需在車庫商店解鎖）：往上噴射升空，落地時震毀範圍內的所有車，不會被通緝；Boss 受 25% 傷害</dd>
         <dt>按住 Tab 或 Q</dt><dd>叫出道具轉盤（時間變慢），移動滑鼠或按 ← → 選擇，放開即裝備</dd>
         <dt>空白鍵 / 滑鼠左鍵</dt><dd>攻擊（丟、開槍）。C 鍵視角回正</dd>
@@ -795,7 +795,7 @@ const UPGRADES = [
   { id: 'ammo',   name: '武器強化', max: 5, base: 180, desc: lv => `所有武器傷害 +12%（目前 +${12 * lv}%）` },
   { id: 'heli',   name: '空中支援改裝', max: 3, base: 300, desc: lv => `冷卻 −5 秒（目前 ${30 - 5 * lv} 秒）` },
   { id: 'jump',   name: '飛天汽車', max: 4, costs: [600, 400, 700, 1000], desc: lv => lv === 0 ? '解鎖技能（H）：升空後落地，震毀範圍內所有車' : `落地範圍 ${14 + 4 * (lv - 1)} 公尺・冷卻 ${30 - 5 * (lv - 1)} 秒` + (lv < 4 ? `（下一級：${14 + 4 * lv} 公尺・${30 - 5 * lv} 秒）` : '') },
-  { id: 'gun',    name: '陸航的朋友', max: 4, costs: [1200, 800, 1200, 1600], desc: lv => lv === 0 ? '解鎖技能（J）：武裝直升機，機炮＋火箭' : `操控 ${20 + 3 * (lv - 1)} 秒・火箭 ${6 + 2 * (lv - 1)} 發・冷卻 ${60 - 10 * (lv - 1)} 秒` + (lv < 4 ? '（再升一級：+3 秒、+2 發、冷卻 −10 秒）' : '') },
+  { id: 'gun',    name: '遙控直升機', max: 4, costs: [1200, 800, 1200, 1600], desc: lv => lv === 0 ? '解鎖技能（J）：武裝直升機，機炮＋火箭' : `操控 ${20 + 3 * (lv - 1)} 秒・火箭 ${6 + 2 * (lv - 1)} 發・冷卻 ${60 - 10 * (lv - 1)} 秒` + (lv < 4 ? '（再升一級：+3 秒、+2 發、冷卻 −10 秒）' : '') },
   { id: 'tank',   name: '地表最強', max: 3, costs: [500, 700, 1000], desc: lv => lv === 0 ? '解鎖技能（G）：三台戰車橫穿高速公路，撞到的車全毀' : `每局可用 ${2 + lv} 次` + (lv < 3 ? `（下一級：${3 + lv} 次）` : '') },
 ];
 const tankMax = () => 2 + save.up.tank;
@@ -1608,7 +1608,7 @@ function updateJump(dt) {
   jumpMarker.visible = true; jumpMarker.scale.set(R, R, 1); jumpMarker.position.set(LANES[player.lane], 0.3, -(player.s + player.speed * remain));
   if (T >= total) jumpLand();
 }
-// ---------- 陸航的朋友：武裝直升機飛來，玩家改用機鼻視角操控機炮與火箭 ----------
+// ---------- 遙控直升機：武裝直升機飛來，玩家改用機鼻視角操控機炮與火箭 ----------
 const GUN_IN = 1.6, GUN_ORBIT = 3, GUN_OUT = 1.6, GUN_Y = 24, GUN_PEN = 300;
 const gunDur = () => 20 + 3 * (save.up.gun - 1), gunRocketMax = () => 6 + 2 * (save.up.gun - 1), gunCDmax = () => 60 - 10 * (save.up.gun - 1);
 const gunCtl = () => !!G.gun && G.gun.phase === 'ctl';
@@ -1630,10 +1630,10 @@ function buildGunship() {
 }
 function useGun() {
   if (!skillOK() || save.up.gun < 1 || G.gun || G.jump) return;
-  if (G.gunCD > 0) { msg(`陸航的朋友冷卻中 ${Math.ceil(G.gunCD)} 秒`, 'bad'); return; }
+  if (G.gunCD > 0) { msg(`遙控直升機冷卻中 ${Math.ceil(G.gunCD)} 秒`, 'bad'); return; }
   const mesh = buildGunship(); scene.add(mesh); gunGroup = mesh;
   G.gun = { mesh, phase: 'in', pt: 0, yaw: 0, pitch: -0.55, hold: false, cannonT: 0, rockT: 0, rockets: gunRocketMax(), bossDmg: 0, autoT: 0, autoR: 0.6, th: 0, pos: new THREE.Vector3(), shots: 0 };
-  msg('陸航的朋友出動！', 'good'); sfx('boss');
+  msg('遙控直升機出動！', 'good'); sfx('boss');
 }
 function gunHit(c, amt, pen = true) {
   if (c.dead || c.magnet || c.fling) return;
