@@ -452,6 +452,17 @@ button.start:focus-visible { outline: 3px solid var(--amber); outline-offset: 3p
 /* 直升機視角的機炮／火箭鈕在左側，右半邊留給瞄準拖曳 */
 #gunBtns { right: auto; left: max(16px, env(safe-area-inset-left, 0px)); bottom: calc(72px + env(safe-area-inset-bottom, 0px)); align-items: flex-start; }
 #app.gunning #speedo { display: none; }
+/* 命中標記：準星處的 X，命中白色、擊殺紅色且較大 */
+.hm { position: absolute; left: 0; top: 0; width: 0; height: 0; opacity: 0; pointer-events: none; }
+.gRet .hm { left: 50%; top: 50%; }
+.hm i { position: absolute; left: -15px; top: -1.5px; width: 30px; height: 3px; background: #fff; box-shadow: 0 0 0 1px rgba(0,0,0,.55); }
+.hm i:nth-child(1) { transform: rotate(45deg); }
+.hm i:nth-child(2) { transform: rotate(-45deg); }
+.hm.hit { animation: hmHit .2s ease-out; }
+.hm.kill { animation: hmKill .5s ease-out; }
+.hm.kill i { background: #ff3b30; left: -22px; width: 44px; height: 4px; top: -2px; }
+@keyframes hmHit { 0% { opacity: 1; transform: scale(.7); } 100% { opacity: 0; transform: scale(1.15); } }
+@keyframes hmKill { 0% { opacity: 1; transform: scale(.7); } 30% { opacity: 1; transform: scale(1.25); } 70% { opacity: 1; transform: scale(1.1); } 100% { opacity: 0; transform: scale(1.3); } }
 </style>
 
 </head>
@@ -459,7 +470,7 @@ button.start:focus-visible { outline: 3px solid var(--amber); outline-offset: 3p
 <div id="app" class="introing">
   <div id="hud">
     <div id="vignette"></div>
-    <div id="gunHud" hidden><div class="gTint"></div><div class="gTop">陸航的朋友<b id="gTime">20</b>秒</div><div class="gRet"></div><div class="gAmmo">火箭<b id="gRock">6</b></div>
+    <div id="gunHud" hidden><div class="gTint"></div><div class="gTop">陸航的朋友<b id="gTime">20</b>秒</div><div class="gRet"><div class="hm"><i></i><i></i></div></div><div class="gAmmo">火箭<b id="gRock">6</b></div>
       <div id="gunBtns"><button id="gRocket" aria-label="火箭">火箭</button><button id="gCannon" aria-label="機炮">機炮</button></div></div>
     <div id="scoreBox" class="sign">
       <div class="eyebrow" id="lvTxt">清道績效</div>
@@ -481,7 +492,7 @@ button.start:focus-visible { outline: 3px solid var(--amber); outline-offset: 3p
     <div id="speech" hidden><b id="spk"></b><span id="spTxt"></span></div>
     <div id="feed"></div>
     <div id="taunt" hidden></div>
-    <div id="cross" hidden><div class="ring"></div><div class="dot"></div></div>
+    <div id="cross" hidden><div class="ring"></div><div class="dot"></div><div class="hm"><i></i><i></i></div></div>
     <div id="speedo">
       <div id="spdRow"><div id="spd">0</div><div class="unit">km/h</div></div>
       <div class="bar"><i id="spdBar"></i></div>
@@ -2629,7 +2640,14 @@ function sfx(kind) {
 }
 
 // 命中回饋：合成的「叩」聲，傷害越大越低沉厚實；擊毀時多一層碎裂聲。音量壓低，不蓋過音樂
+function hitMark(killed) {
+  document.querySelectorAll(G.gun ? '#gunHud .hm' : '#cross .hm').forEach(el => {
+    el.classList.remove('hit', 'kill'); void el.offsetWidth; el.classList.add(killed ? 'kill' : 'hit');
+  });
+  if (killed && !G.gun) player.shake = Math.max(player.shake, 0.1);
+}
 function hitFx(amount, maxHp, killed) {
+  hitMark(killed);
   if (!actx || muted) return;
   const t = actx.currentTime, p = clamp(amount / Math.max(1, maxHp), 0, 1), heavy = amount >= 30 || p > 0.25;
   const tone = (f0, f1, dur, vol, type) => {
