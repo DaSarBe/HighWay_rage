@@ -422,6 +422,26 @@ button.start:focus-visible { outline: 3px solid var(--amber); outline-offset: 3p
 }
 @media (max-width: 420px) { #scoreBox { transform: scale(.72) !important; } }
 @media (max-width: 360px) { #scoreBox { transform: scale(.58) !important; } }
+/* 技能鈕在左側直列（由上而下：空中支援、地表最強、飛天汽車、陸航），時速面板在最下方 */
+#skillBar { flex-direction: column; align-items: flex-start; }
+@media (hover: none) and (pointer: coarse) {
+  #skHeli, #skTank, #skJump, #skGun { left: max(16px, env(safe-area-inset-left, 0px)); }
+  #skGun { bottom: calc(146px + env(safe-area-inset-bottom, 0px)); }
+  #skJump { bottom: calc(200px + env(safe-area-inset-bottom, 0px)); }
+  #skTank { bottom: calc(254px + env(safe-area-inset-bottom, 0px)); }
+  #skHeli { bottom: calc(308px + env(safe-area-inset-bottom, 0px)); }
+}
+@media (hover: none) and (pointer: coarse) and (orientation: landscape) {
+  #speedo { scale: .65; }
+  .skill { height: 34px; }
+  #skHeli, #skTank, #skJump, #skGun { left: max(16px, env(safe-area-inset-left, 0px)); }
+  #skGun { bottom: calc(115px + env(safe-area-inset-bottom, 0px)); }
+  #skJump { bottom: calc(153px + env(safe-area-inset-bottom, 0px)); }
+  #skTank { bottom: calc(191px + env(safe-area-inset-bottom, 0px)); }
+  #skHeli { bottom: calc(229px + env(safe-area-inset-bottom, 0px)); }
+}
+@media (hover: none) and (pointer: coarse) { .skill .sk-name { white-space: nowrap; } }
+@media (hover: none) and (pointer: coarse) and (orientation: landscape) { .skill { width: 66px; } .skill .sk-name { font-size: 10px; line-height: 1.1; } .skill .sk-sub { font-size: 9px; line-height: 1.1; } }
 </style>
 
 </head>
