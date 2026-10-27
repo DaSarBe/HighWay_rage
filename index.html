@@ -497,8 +497,8 @@ button.start:focus-visible { outline: 3px solid var(--amber); outline-offset: 3p
       </ol></div>
       <div class="rule"></div>
       <dl class="keys touchOnly">
-        <dt>左右滑</dt><dd>在畫面下半部快速左右滑，換車道（拿著道具也可以）</dd>
-        <dt>拖曳上半部</dt><dd>在畫面上半部左右拖曳，轉動視角瞄準</dd>
+        <dt>左右滑</dt><dd>在畫面左半邊快速左右滑，換車道（拿著道具也可以）</dd>
+        <dt>拖曳右半邊</dt><dd>在畫面右半邊拖曳，轉動視角瞄準</dd>
         <dt>技能鈕</dt><dd>空中支援（冷卻 30 秒）、地表最強（3 次）</dd>
         <dt>油門 / 煞車</dt><dd>右下角兩個踏板，按住不放；不踩油門會自動定速</dd>
         <dt>道具鈕</dt><dd>按住後把手指滑到想要的道具上再放開；或點一下打開轉盤再點選</dd>
@@ -2454,8 +2454,8 @@ cv.addEventListener('pointerdown', e => {
   if (e.pointerType === 'mouse' && !document.pointerLockElement) tryLock();
   if (look.id === null) {
     look.id = e.pointerId; look.x = look.x0 = e.clientX; look.y = look.y0 = e.clientY; look.t0 = performance.now();
-    // 觸控：畫面下半部是「滑動換車道」區，上半部拖曳是瞄準
-    look.swipe = e.pointerType === 'touch' && e.clientY > innerHeight * 0.5;
+    // 觸控：畫面左半邊是「滑動換車道」區，右半邊拖曳是瞄準
+    look.swipe = e.pointerType === 'touch' && e.clientX < innerWidth * 0.5;
     try { cv.setPointerCapture(e.pointerId); } catch (_) {}
   }
   if (e.pointerType === 'mouse' && document.pointerLockElement) mouseDown = true;
@@ -2463,7 +2463,7 @@ cv.addEventListener('pointerdown', e => {
 cv.addEventListener('pointermove', e => {
   if (gunCtl()) {
     if (e.pointerType === 'mouse' && document.pointerLockElement === cv) { gunLook(e.movementX, e.movementY, 0.0028); return; }
-    if (e.pointerId !== look.id || look.swipe) return;   // 螢幕下半部的橫向滑動留給換車道
+    if (e.pointerId !== look.id || look.swipe) return;   // 螢幕左半邊的橫向滑動留給換車道
     gunLook(e.clientX - look.x, e.clientY - look.y, e.pointerType === 'touch' ? 0.006 : 0.004); look.x = e.clientX; look.y = e.clientY; return;
   }
   if (e.pointerType === 'mouse' && document.pointerLockElement === cv) { lookBy(e.movementX, 0.0028); return; }
@@ -2716,7 +2716,7 @@ const isTouchUI = matchMedia('(hover: none) and (pointer: coarse)').matches;
 const tut = { gas: 0, lanes: 0, shot: 0, heli: 0 };
 const TUT_STEPS = [
   { txt: isTouchUI ? '油門：按住右下「油門」加速，放開會自動定速' : '油門：按住 ↑ 或 W 加速，放開會自動定速', ok: () => tut.gas >= 0.8 },
-  { txt: isTouchUI ? '換車道：在畫面下半部快速左右滑' : '換車道：按 ← → 或 A D', ok: () => tut.lanes >= 1 },
+  { txt: isTouchUI ? '換車道：在畫面左半邊快速左右滑' : '換車道：按 ← → 或 A D', ok: () => tut.lanes >= 1 },
   { txt: isTouchUI ? '攻擊：按右下「攻擊」鈕' : '攻擊：按空白鍵或滑鼠左鍵', ok: () => tut.shot >= 1 },
   { txt: isTouchUI ? '空中支援：點「空中支援」技能鈕，直升機會吸走前方的車' : '空中支援：按 F 叫出直升機，磁鐵會吸走前方的車', ok: () => tut.heli >= 1 },
 ];
