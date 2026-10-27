@@ -1630,7 +1630,7 @@ function gunHit(c, amt, pen = true) {
     const U = G.gun, room = c.maxHp * 0.4 - (U ? U.bossDmg : 0); if (room <= 0) return;
     amt = Math.min(amt, room); if (U) U.bossDmg += amt;
   }
-  c.hp -= amt; c.flashT = 0.08; if (c.label) drawLabel(c);
+  c.hp -= amt; c.flashT = 0.08; if (c.label) drawLabel(c); hitFx(amt, c.maxHp, c.hp <= 0);
   if (c.kind === 'normal' && pen && !c.gunPen && !c.wrong) { c.gunPen = true; addScore(-GUN_PEN); breakCombo(); msg(`誤傷無辜 −${GUN_PEN}`, 'bad'); }
   if (c.kind === 'boss' && !c.said50 && c.hp < c.maxHp * 0.5) { c.said50 = true; say(c, '你激怒我了！', 2.6, true); }
   if (c.hp <= 0) kill(c, { skill: true });
@@ -2044,7 +2044,7 @@ function damage(c, amount, tag) {
   }
   if (c.hex) { c.hex = false; amount *= 2; }
   sfx(c.kind === 'normal' || c.kind === 'police' ? 'hitbad' : 'hitgood');
-  c.hp -= amount; c.flashT = 0.08;
+  c.hp -= amount; c.flashT = 0.08; hitFx(amount, c.maxHp, c.hp <= 0);
   if (c.label) drawLabel(c);
   flashCross();
   if (c.hp > 0 && c.kind !== 'normal') {
@@ -2626,6 +2626,25 @@ function sfx(kind) {
     case 'crash': noise(0.5, 0.8, 900); tone(100, 40, 0.3, 0.4, 'square'); break;
     case 'tick': tone(1400, 1200, 0.03, 0.08, 'square'); break;
   }
+}
+
+// 命中回饋：合成的「叩」聲，傷害越大越低沉厚實；擊毀時多一層碎裂聲。音量壓低，不蓋過音樂
+function hitFx(amount, maxHp, killed) {
+  if (!actx || muted) return;
+  const t = actx.currentTime, p = clamp(amount / Math.max(1, maxHp), 0, 1), heavy = amount >= 30 || p > 0.25;
+  const tone = (f0, f1, dur, vol, type) => {
+    const o = actx.createOscillator(); o.type = type; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+    const g = actx.createGain(); g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    o.connect(g).connect(actx.destination); o.start(t); o.stop(t + dur + 0.02);
+  };
+  const noise = (dur, vol, freq) => {
+    const s = actx.createBufferSource(); s.buffer = noiseBuf; const f = actx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = freq; f.Q.value = 0.8;
+    const g = actx.createGain(); g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    s.connect(f).connect(g).connect(actx.destination); s.start(t); s.stop(t + dur + 0.02);
+  };
+  if (heavy) { tone(220, 70, 0.14, 0.2, 'triangle'); noise(0.09, 0.16, 1400); }
+  else { tone(900, 420, 0.06, 0.1, 'square'); noise(0.04, 0.08, 3000); }
+  if (killed) { tone(520, 1040, 0.12, 0.09, 'square'); tone(140, 45, 0.3, 0.22, 'sawtooth'); noise(0.28, 0.2, 700); }
 }
 
 // 引擎：依檔位換算轉速，踩油門時轉速往上衝，換檔時掉一下
