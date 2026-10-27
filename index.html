@@ -449,6 +449,9 @@ button.start:focus-visible { outline: 3px solid var(--amber); outline-offset: 3p
 @media (hover: none) and (pointer: coarse) and (orientation: landscape) {
   #tFire { left: calc(max(16px, env(safe-area-inset-left, 0px)) + 76px); bottom: calc(115px + env(safe-area-inset-bottom, 0px)); width: 72px; height: 72px; }
 }
+/* 直升機視角的機炮／火箭鈕在左側，右半邊留給瞄準拖曳 */
+#gunBtns { right: auto; left: max(16px, env(safe-area-inset-left, 0px)); bottom: calc(72px + env(safe-area-inset-bottom, 0px)); align-items: flex-start; }
+#app.gunning #speedo { display: none; }
 </style>
 
 </head>
