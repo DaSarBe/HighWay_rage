@@ -442,6 +442,13 @@ button.start:focus-visible { outline: 3px solid var(--amber); outline-offset: 3p
 }
 @media (hover: none) and (pointer: coarse) { .skill .sk-name { white-space: nowrap; } }
 @media (hover: none) and (pointer: coarse) and (orientation: landscape) { .skill { width: 66px; } .skill .sk-name { font-size: 10px; line-height: 1.1; } .skill .sk-sub { font-size: 9px; line-height: 1.1; } }
+/* 攻擊鈕移到左側技能組旁 */
+@media (hover: none) and (pointer: coarse) {
+  #tFire { right: auto; left: calc(max(16px, env(safe-area-inset-left, 0px)) + 68px); bottom: calc(240px + env(safe-area-inset-bottom, 0px)); width: 76px; height: 76px; }
+}
+@media (hover: none) and (pointer: coarse) and (orientation: landscape) {
+  #tFire { left: calc(max(16px, env(safe-area-inset-left, 0px)) + 76px); bottom: calc(140px + env(safe-area-inset-bottom, 0px)); width: 72px; height: 72px; }
+}
 </style>
 
 </head>
@@ -2737,7 +2744,7 @@ const tut = { gas: 0, lanes: 0, shot: 0, heli: 0 };
 const TUT_STEPS = [
   { txt: isTouchUI ? '油門：按住右下「油門」加速，放開會自動定速' : '油門：按住 ↑ 或 W 加速，放開會自動定速', ok: () => tut.gas >= 0.8 },
   { txt: isTouchUI ? '換車道：在畫面左半邊快速左右滑' : '換車道：按 ← → 或 A D', ok: () => tut.lanes >= 1 },
-  { txt: isTouchUI ? '攻擊：按右下「攻擊」鈕' : '攻擊：按空白鍵或滑鼠左鍵', ok: () => tut.shot >= 1 },
+  { txt: isTouchUI ? '攻擊：按左側技能旁的「攻擊」鈕' : '攻擊：按空白鍵或滑鼠左鍵', ok: () => tut.shot >= 1 },
   { txt: isTouchUI ? '空中支援：點「空中支援」技能鈕，直升機會吸走前方的車' : '空中支援：按 F 叫出直升機，磁鐵會吸走前方的車', ok: () => tut.heli >= 1 },
 ];
 const TUT_KEY = 'rck-tut';
